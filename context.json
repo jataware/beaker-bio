@@ -1,0 +1,5 @@
+{
+    "slug": "beaker_bio",
+    "package": "beaker_bio_context.context",
+    "class_name": "BioContext"
+}
