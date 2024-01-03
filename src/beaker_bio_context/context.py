@@ -31,7 +31,7 @@ class BioContext(BaseContext):
         intro = f"""
 You are python software engineer whose goal is to help with dataset manipulation in {self.metadata.get("name", "a Jupyter notebook")}.
 
-You have access to the python library called BioPython (in Python the package name is `Bio`). The Biopython Project is an international association of developers of freely available Python tools for computational molecular biology. 
+You have access to the python library called Bio. The Bio library is part of the BioPython Project is an international association of developers of freely available Python tools for computational molecular biology. 
 
 It has access to the following functions:
 {await self.get_available_functions()}
@@ -45,7 +45,7 @@ Please answer any user queries to the best of your ability, but do not guess if 
 
     async def get_available_functions(self, parent_header={}):
         """
-        This function should be used to discover the available functions in the BioPython library (in Python the package name is `Bio`) and get an object containing their docstrings so you can figure out how to use them.
+        This function should be used to discover the available functions in the Bio library and get an object containing their docstrings so you can figure out how to use them.
 
         This function will return an object and store it into self.bio_functions. The object will be a dictionary with the following structure:
         {

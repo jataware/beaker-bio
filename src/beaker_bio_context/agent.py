@@ -24,7 +24,7 @@ class BioToolset:
         """
         Use this if you are asked to generate code.
 
-        You should ALWAYS try to use functions from the 'Biopython' library.
+        You should ALWAYS try to use functions from the 'Bio' library.
 
         You should ALWAYS look at the docstrings for the functions in the code you write to determine how to use them.
 
@@ -34,7 +34,7 @@ class BioToolset:
             code_request (str): A fully grammatically correct description of what the code should do.
         """
         prompt = f"""
-    You are tasked with writing Python code using the Biopython library for various scientific tasks (in Python the package name is `Bio`).
+    You are tasked with writing Python code using the Bio library for various scientific tasks.
 
     Please generate Python code to satisfy the user's request below.
 
@@ -104,7 +104,7 @@ class BioAgent(BaseAgent):
     """
     You are assisting us in performing important scientific tasks.
 
-    The main things you are going to do are related to biology and you will use Biopython (in Python the package name is `Bio`).
+    The main things you are going to do are related to biology and you will use the Bio python library.
 
     If you don't have the details necessary, you should use the ask_user tool to ask the user for them.
 
