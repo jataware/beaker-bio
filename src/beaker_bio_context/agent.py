@@ -45,7 +45,7 @@ class BioToolset:
     
     After you select a function or functions to use, you MUST look up the function docstring. This teaches you what arguments to use in the code.
 
-    You use the get_available_functions tool or read the function docstrings to learn how to use them. (Use <function>.__doc__ to read the docstring).
+    You use the available_functions tool or read the function docstrings to learn how to use them. (Use <function>.__doc__ to read the docstring).
 
     Ensure to handle any required dependencies, and provide a well-documented and efficient solution. Feel free to create helper functions or classes if needed.
 
@@ -68,9 +68,11 @@ class BioToolset:
     generate_code.__doc__
 
     @tool()
-    async def get_available_functions(self, agent: AgentRef) -> None:
+    async def get_available_functions(self, package_name: str, agent: AgentRef) -> None:
         """
-        This function should be used to discover the available functions in the target library and get an object containing their docstrings so you can figure out how to use them.
+        This function should be used to discover the available functions in the target library or module and get an object containing their docstrings so you can figure out how to use them.
+
+        Make sure never to call this function on "Bio"; instead make sure that `package_name` is a submodule of Bio, for example `Bio.NaiveBayes` and not `Bio` itself.
 
         This function will return an object and store it into self.__functions. The object will be a dictionary with the following structure:
         {
@@ -79,14 +81,19 @@ class BioToolset:
         }
 
         Read the docstrings to learn how to use the functions and which arguments they take.
+
+        Args:
+            package_name (str): this is the name of the package to get information about. For example "Bio.NaiveBayes"
         """
         functions = {}
-        code = agent.context.get_code("info")
+        code = agent.context.get_code("info", {"package_name": package_name})
         info_response = await agent.context.beaker_kernel.evaluate(
             code,
             parent_header={},
         )
-        info = info_response.get("return")
+        # info = info_response.get("return")
+        with open('/tmp/info.json', 'r') as f:
+            info = json.loads(f.read())        
         for var_name, info in info.items():
             if var_name in functions:
                 functions[var_name] = info

@@ -1,8 +1,13 @@
+import logging
+import json
 import importlib
 import pkgutil
 
 # We need to import the target library here
-import Bio
+
+import {{package_name}}
+
+logger = logging.getLogger(__name__)
 
 def get_docstrings(module):
     result = {}
@@ -21,7 +26,8 @@ def get_docstrings(module):
                 full_name = f"{modname}.{attribute_name}"
 
                 if hasattr(attribute, '__doc__'):
-                    result[full_name] = attribute.__doc__
+                        if attribute.__doc__:
+                            result[full_name] = attribute.__doc__
         except ImportError:
             # Skip modules that can't be imported
             continue
@@ -30,5 +36,7 @@ def get_docstrings(module):
 
 # Get docstrings for package and its submodules
 # Note we need to pass the library in here
-_result = get_docstrings(Bio)
-_result
+if f'{{package_name}}' != 'Bio':
+    result = get_docstrings({{package_name}})
+    with open('/tmp/info.json', 'w') as f:
+        f.write(json.dumps(result))
