@@ -11,15 +11,16 @@ from archytas.tool_utils import AgentRef, LoopControllerRef, is_tool, tool, tool
 from beaker_kernel.lib.agent import BaseAgent
 from beaker_kernel.lib.context import BaseContext
 
-with open('context.json','r') as f:
-    conf = json.loads(f.read())
-
 logger = logging.getLogger(__name__)
 
 
 @toolset()
 class BioToolset:
     """Toolset for Bio context"""
+
+    def __init__(self):
+        with open('context.json', 'r') as f:
+            self.context_conf = json.load(f)
 
     @tool()
     async def generate_code(self, code_request: str, agent: AgentRef, loop: LoopControllerRef) -> None:
@@ -34,9 +35,9 @@ class BioToolset:
             code_request (str): A fully grammatically correct description of what the code should do.
         """
         prompt = f"""
-    You are tasked with writing Python code using the libraries {conf.get('library_names')} for various scientific tasks.
+    You are tasked with writing Python code using the libraries {self.context_conf.get('library_names')} for various scientific tasks.
 
-    You should ALWAYS try to use functions from one of the libraries {conf.get('library_names')}.
+    You should ALWAYS try to use functions from one of the libraries {self.context_conf.get('library_names')}.
 
     Please generate Python code to satisfy the user's request below.
 
@@ -67,7 +68,6 @@ class BioToolset:
         )
         return result
 
-    # generate_code.__doc__ = generate_code.__doc__.format(libraries=', '.join(conf.get("library_names",[])))
     generate_code.__doc__
 
     @tool(autosummarize=True)
