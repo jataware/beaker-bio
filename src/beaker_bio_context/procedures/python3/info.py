@@ -28,7 +28,7 @@ def get_docstrings(module):
                 if hasattr(attribute, '__doc__'):
                         if attribute.__doc__:
                             result[full_name] = attribute.__doc__
-        except ImportError:
+        except Exception as e:
             # Skip modules that can't be imported
             continue
 
@@ -36,7 +36,7 @@ def get_docstrings(module):
 
 # Get docstrings for package and its submodules
 # Note we need to pass the library in here
-if f'{{package_name}}' != 'Bio':
+if 'Bio' not in f'{{package_name}}':
     result = get_docstrings({{package_name}})
     with open('/tmp/info.json', 'w') as f:
         f.write(json.dumps(result))

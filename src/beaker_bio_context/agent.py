@@ -11,6 +11,8 @@ from archytas.tool_utils import AgentRef, LoopControllerRef, is_tool, tool, tool
 from beaker_kernel.lib.agent import BaseAgent
 from beaker_kernel.lib.context import BaseContext
 
+with open('context.json','r') as f:
+    conf = json.loads(f.read())
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +26,6 @@ class BioToolset:
         """
         Use this if you are asked to generate code.
 
-        You should ALWAYS try to use functions from the 'Bio' library.
-
         You should ALWAYS look at the docstrings for the functions in the code you write to determine how to use them.
 
         If any functions require additional arguments, please ask the user to provide these and do not guess at their values.
@@ -34,7 +34,9 @@ class BioToolset:
             code_request (str): A fully grammatically correct description of what the code should do.
         """
         prompt = f"""
-    You are tasked with writing Python code using the Bio library for various scientific tasks.
+    You are tasked with writing Python code using the libraries {conf.get('library_names')} for various scientific tasks.
+
+    You should ALWAYS try to use functions from one of the libraries {conf.get('library_names')}.
 
     Please generate Python code to satisfy the user's request below.
 
@@ -65,14 +67,13 @@ class BioToolset:
         )
         return result
 
+    # generate_code.__doc__ = generate_code.__doc__.format(libraries=', '.join(conf.get("library_names",[])))
     generate_code.__doc__
 
-    @tool()
+    @tool(autosummarize=True)
     async def get_available_functions(self, package_name: str, agent: AgentRef) -> None:
         """
         This function should be used to discover the available functions in the target library or module and get an object containing their docstrings so you can figure out how to use them.
-
-        Make sure never to call this function on "Bio"; instead make sure that `package_name` is a submodule of Bio, for example `Bio.NaiveBayes` and not `Bio` itself.
 
         This function will return an object and store it into self.__functions. The object will be a dictionary with the following structure:
         {
@@ -111,10 +112,7 @@ class BioAgent(BaseAgent):
     """
     You are assisting us in performing important scientific tasks.
 
-    The main things you are going to do are related to biology and you will use the Bio python library.
-
     If you don't have the details necessary, you should use the ask_user tool to ask the user for them.
-
     """
 
     def __init__(self, context: BaseContext = None, tools: list = None, **kwargs):

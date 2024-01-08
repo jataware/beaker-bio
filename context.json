@@ -1,5 +1,7 @@
 {
     "slug": "beaker_bio",
     "package": "beaker_bio_context.context",
-    "class_name": "BioContext"
+    "class_name": "BioContext",
+    "library_names": ["elwood", "Bio"],
+    "task_description": "dataset manipulation"
 }

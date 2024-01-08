@@ -21,4 +21,5 @@ USER jupyter
 RUN pip install .
 
 WORKDIR /jupyter
+COPY context.json /jupyter
 CMD ["python", "-m", "beaker_kernel.server.main", "--ip", "0.0.0.0"]

@@ -1,9 +1,9 @@
 import logging
-import ast
+import contextlib
+from importlib import import_module
+import io
 import json
 from typing import TYPE_CHECKING, Any, Dict
-
-import Bio
 
 from beaker_kernel.lib.context import BaseContext
 from beaker_kernel.lib.subkernels.python import PythonSubkernel
@@ -31,17 +31,18 @@ class BioContext(BaseContext):
             raise ValueError("This context is only valid for Python.")
         self.functions = {}
         self.config = config
+        with open('context.json','r') as f:
+            self.context_conf = json.loads(f.read())        
         super().__init__(beaker_kernel, subkernel, self.agent_cls, config)
 
     async def auto_context(self):
         intro = f"""
-You are python software engineer whose goal is to help with dataset manipulation in {self.metadata.get("name", "a Jupyter notebook")}.
+You are python software engineer whose goal is to help with {self.context_conf.get('task_description'), 'doing things'} in {self.metadata.get("name", "a Jupyter notebook")}.
 
-You have access to the python library called Bio. The Bio library is part of the BioPython Project is an international association of developers of freely available Python tools for computational molecular biology. 
-
-You has access to the following library information which you should use to discover what is available within a package and determine the proper syntax and functionality on how to use the code.
+You have access to the following library information which you should use to discover what is available within a package and determine the proper syntax and functionality on how to use the code.
 Querying against the module or package should list all avialable submodules and functions that exist, so you can use this to discover available
-functions and the query the function to get usage information.
+functions and the query the function to get usage information. Below is a dictionary of library help information where the library name is the key
+and the help documentation the value:
 
 {await self.retrieve_documentation()}
 """
@@ -53,4 +54,21 @@ Please answer any user queries to the best of your ability, but do not guess if 
         return result
 
     async def retrieve_documentation(self):
-        return help(Bio)
+        """
+        Get's the specified libraries help documentation and stores it into a dictionary:
+        {   
+            "package_name": "help documentation",
+            ....
+        }
+        """
+        documentation = {}
+        for package in self.context_conf.get('library_names', []):
+            module = import_module(package)
+
+            # Redirect the standard output to capture the help text
+            with io.StringIO() as buf, contextlib.redirect_stdout(buf):
+                help(module)
+                # Store the help text in the dictionary
+                documentation[package] = buf.getvalue()
+
+        return documentation

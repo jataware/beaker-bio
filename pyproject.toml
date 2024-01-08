@@ -23,6 +23,7 @@ classifiers = [
 dependencies = [
   "beaker-kernel~=1.2.3",
   "biopython==1.82",
+  "elwood==0.1.4",  
 ]
 
 [tool.hatch.metadata]
