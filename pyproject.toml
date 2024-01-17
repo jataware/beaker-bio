@@ -22,8 +22,11 @@ classifiers = [
 ]
 dependencies = [
   "beaker-kernel~=1.2.3",
-  "biopython==1.82",
-  "elwood==0.1.4",  
+  "biopython~=1.82",
+  "elwood==0.1.4",
+  "chirho==0.2.0",
+  "chromadb~=0.4.22",
+  "bioregistry~=0.10.119"
 ]
 
 [tool.hatch.metadata]

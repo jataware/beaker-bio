@@ -36,7 +36,7 @@ def get_docstrings(module):
 
 # Get docstrings for package and its submodules
 # Note we need to pass the library in here
-if 'Bio' not in f'{{package_name}}':
-    result = get_docstrings({{package_name}})
-    with open('/tmp/info.json', 'w') as f:
-        f.write(json.dumps(result))
+# if '.' in f'{{package_name}}':
+result = get_docstrings({{package_name}})
+with open('/tmp/info.json', 'w') as f:
+    f.write(json.dumps(result))

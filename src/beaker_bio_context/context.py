@@ -70,5 +70,5 @@ Please answer any user queries to the best of your ability, but do not guess if 
                 help(module)
                 # Store the help text in the dictionary
                 documentation[package] = buf.getvalue()
-
+        print(f"Fetched help for {documentation.keys()}")
         return documentation

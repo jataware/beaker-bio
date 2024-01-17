@@ -1,10 +1,20 @@
 import chromadb
 
-def query_functions(query_text, n_results=5):
+def query_functions(query, n_results=5):
+    '''
+    Takes in a query and returns the top n results in the following form:
+
+    {'function_name': {
+                        'description': 'description of the function here',
+                        'docstring': 'the docstring of the function here'
+                        },
+    ...
+    }
+    '''
     client = chromadb.HttpClient(host='chromadb', port=8000)
     collection = client.get_collection("python_functions")
     result = collection.query(
-        query_texts=[query_text],
+        query_texts=[query],
         n_results=n_results
     )
     cleaned_results = {}
@@ -16,4 +26,4 @@ def query_functions(query_text, n_results=5):
 
     return cleaned_results
 
-query_functions({{query}})
+query_functions("{{query}}")
