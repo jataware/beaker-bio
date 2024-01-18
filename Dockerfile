@@ -4,7 +4,8 @@ USER root
 
 # RUN apt add-repository ppa:ubuntugis/ppa
 RUN apt-get update &&\
-    apt-get install -y build-essential gcc g++ gdal-bin libgdal-dev python3-all-dev libspatialindex-dev
+    apt-get install -y build-essential gcc g++ gdal-bin libgdal-dev python3-all-dev libspatialindex-dev \
+            graphviz libgraphviz-dev 
 
 ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 ENV C_INCLUDE_PATH=/usr/include/gdal

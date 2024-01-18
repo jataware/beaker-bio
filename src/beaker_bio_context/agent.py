@@ -27,11 +27,13 @@ class BioToolset:
         """
         Use this if you are asked to generate code.
 
-        You should ALWAYS think about what you need to do and search for functions that can help you.
+        You should ALWAYS think about what you need to do and search for "skills" (functions, classes and methods) that can help you.
         
-        You should ALWAYS look at the docstrings for the functions in the code you write to determine how to use them.
+        You should ALWAYS look at the docstrings for the skills (functions, classes, methods, etc) in the code you write to determine how to use them.
 
         If any functions require additional arguments, please ask the user to provide these and do not guess at their values.
+
+        If you are confused in any way about how to use a library, make sure to call `help(module_name)` to learn as much as you can.
 
         Args:
             code_request (str): A fully grammatically correct description of what the code should do.
@@ -39,7 +41,12 @@ class BioToolset:
         prompt = f"""
     You are tasked with writing Python code for various scientific tasks. You have some special libraries at your disposal, {self.context_conf.get('library_names')}, but can use other libraries if need be.
 
-    You should ALWAYS try to use functions from one of the libraries {self.context_conf.get('library_names')} if you are able to find one or more functions from them that seem relevant to the task at hand.
+    You should ALWAYS try to use functions, classes or methods from one of the libraries {self.context_conf.get('library_names')} if you are able to find one or more functions from them that seem relevant to the task at hand.
+
+    You should ALWAYS search for relevant "skills"" with the `skill_search` tool before generating code to ensure you have done your utmost to identify appropriate functions, classes, methods, etc.
+
+    If you decide that something discovered via `skill_search` is relevant to the task at hand, ALWAYS consider both the docstring and the function code
+    to make sure you are using the the "skill" correctly.
 
     Please generate Python code to satisfy the user's request below.
 
@@ -48,9 +55,10 @@ class BioToolset:
         {code_request}
         ```
     
-    After you select a function or functions to use, you MUST look up the function docstring. This teaches you what arguments to use in the code.
+    After you select function, classes, and methods to use, you MUST look at the relevant docstring and source code. This teaches you what arguments to use in the code.
 
-    Read the function docstrings to learn how to use them. (Use <function>.__doc__ to read the docstring).
+    Read the function docstrings to learn how to use them. (Use <function>.__doc__ to read the docstring). You should ALWAYS try to call `help(module_name)` on the module 
+    in which you found the skills you want to use to double and triple check you are invoking the skill correctly!
 
     Ensure to handle any required dependencies, and provide a well-documented and efficient solution. Feel free to create helper functions or classes if needed.
 
@@ -113,24 +121,25 @@ class BioToolset:
 
 
     @tool(autosummarize=True)
-    async def search_functions(self, query: str, agent: AgentRef) -> None:
+    async def skill_search(self, query: str, agent: AgentRef) -> None:
         """
-        This function should be used to search for available functions that are available and relevant to the task described in the `query`.
+        This function should be used to search for available classes, functions and methods that are available and relevant to the task described in the `query`.
 
         The query should be simple and specific and not overly verbose in order to yield the most relevant results.
 
         This function will return a search result object of the form:
 
         ```
-        {'function_name': {
+        {'function_or_class_name': {
                         'description': 'description of the function here',
-                        'docstring': 'the docstring of the function here'
+                        'docstring': 'the docstring of the function here',
+                        'source_code': 'the source code of the function here',
                         },
         ...
         }
         ```
 
-        You should then read the docstrings to learn how to use the functions and which arguments they take.
+        You should then read the docstrings and the source code to learn how to use the functions/classes/etc and which arguments they take and methods they have.
 
         Args:
             query (str): this is the query that describes the task against which you wish to find matching functions. This should be simple and specific."

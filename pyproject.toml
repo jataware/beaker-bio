@@ -26,7 +26,8 @@ dependencies = [
   "elwood==0.1.4",
   "chirho==0.2.0",
   "chromadb~=0.4.22",
-  "bioregistry~=0.10.119"
+  "bioregistry~=0.10.119",
+  "pygraphviz~=1.12",
 ]
 
 [tool.hatch.metadata]

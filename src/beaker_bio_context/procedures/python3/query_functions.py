@@ -22,7 +22,8 @@ def query_functions(query, n_results=5):
         func = result['ids'][0][i]
         description = result['documents'][0][i]
         docstring = result['metadatas'][0][i]['docstring']
-        cleaned_results[func] = {'description': description, 'docstring': docstring}
+        source_code = result['metadatas'][0][i]['source_code']
+        cleaned_results[func] = {'description': description, 'docstring': docstring, 'source_code': source_code}
 
     return cleaned_results
 
