@@ -2,6 +2,6 @@
     "slug": "beaker_bio",
     "package": "beaker_bio_context.context",
     "class_name": "BioContext",
-    "library_names": ["elwood", "Bio", "chirho", "pyro", "mira"],
-    "task_description": "dataset manipulation and statistical analysis"
+    "library_names": ["Bio", "mira"],
+    "task_description": "Biological data manipulation"
 }

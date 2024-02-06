@@ -10,7 +10,7 @@ from archytas.tool_utils import AgentRef, LoopControllerRef, is_tool, tool, tool
 
 from beaker_kernel.lib.agent import BaseAgent
 from beaker_kernel.lib.context import BaseContext
-
+from .CodeLATS.code_lats import use_lats
 logger = logging.getLogger(__name__)
 
 
@@ -21,6 +21,10 @@ class BioToolset:
     def __init__(self):
         with open('context.json', 'r') as f:
             self.context_conf = json.load(f)
+
+#    @tool(autosummarize=True)
+#    async def generate_code_using_lats(self, query: str, agent: AgentRef) -> None:
+#        use_lats(query,model='gpt-3.5-turbo-1106',tree_depth=2)#'gpt-4-1106-preview''gpt-4-1106-preview'
 
     @tool(autosummarize=True)
     async def generate_code(self, code_request: str, agent: AgentRef, loop: LoopControllerRef) -> None:

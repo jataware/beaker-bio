@@ -1,4 +1,19 @@
 import chromadb
+import os
+import openai
+
+def start_chromadb(docker=False):
+    import chromadb
+    if docker:
+        #Initialize ChromaDB client and create a collection
+        client = chromadb.HttpClient(host='localhost', port=8000)
+    else:
+        chroma_client = chromadb.PersistentClient(path="./chromabd_functions")
+    
+    collection = chroma_client.get_or_create_collection(name="mira_full")
+    
+    openai.api_key = os.environ['OPENAI_API_KEY']
+    return collection
 
 def query_functions(query, n_results=5):
     '''
@@ -11,8 +26,7 @@ def query_functions(query, n_results=5):
     ...
     }
     '''
-    client = chromadb.HttpClient(host='chromadb', port=8000)
-    collection = client.get_collection("python_functions")
+    collection=start_chromadb(docker=True)
     result = collection.query(
         query_texts=[query],
         n_results=n_results
