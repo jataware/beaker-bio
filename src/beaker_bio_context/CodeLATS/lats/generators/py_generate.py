@@ -222,6 +222,8 @@ END OF EXAMPLES
 """
 
 PY_TEST_GENERATION_FEW_SHOT = """Examples:
+user request:
+    Add these three numbers together - 2,4,7
 func signature:
 def add3Numbers(x, y, z):
     \"\"\" Add three numbers together.
@@ -234,13 +236,15 @@ assert add3Numbers(1, -2, 3) == 2
 assert add3Numbers(1, 2, -3) == 0
 assert add3Numbers(-3, -2, -1) == -6
 assert add3Numbers(0, 0, 0) == 0
+
+result=add3Numbers(2,4,7)
 """
 
-PY_TEST_GENERATION_COMPLETION_INSTRUCTION = f"""You are an AI coding assistant that can write unique, diverse, and intuitive unit tests functions that would fulfill a given user request.
+PY_TEST_GENERATION_COMPLETION_INSTRUCTION = f"""You are an AI coding assistant that can write fulfill user requests by writing code. You write unique,diverse and intuitive unit tests that check that the code that you have written fulfills the user's request.
 
 {PY_TEST_GENERATION_FEW_SHOT}"""
 
-PY_TEST_GENERATION_CHAT_INSTRUCTION = """You are an AI coding assistant that can write unique, diverse, and intuitive unit tests for functions that would fulfill a given user request."""
+PY_TEST_GENERATION_CHAT_INSTRUCTION = """You are an AI coding assistant that can write fulfill user requests by writing code. You write unique,diverse and intuitive unit tests that check that the code that you have written fulfills the user's request."""
 
 
 class PyGenerator(Generator):

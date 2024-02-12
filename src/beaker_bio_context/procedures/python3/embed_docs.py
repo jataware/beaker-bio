@@ -12,6 +12,7 @@ from functools import wraps
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List,Union
 import tenacity
+#TODO: need to add classes themselves. Only class functions are exposed right now.
 
 from typing import _SpecialGenericAlias
 
@@ -22,13 +23,14 @@ def start_chromadb(docker=False):
         client = chromadb.HttpClient(host='localhost', port=8000)
     else:
         chroma_client = chromadb.PersistentClient(path="./chromabd_functions")
+        #chroma_client = chromadb.PersistentClient(path="/bio_context/chromabd_functions")
     
     collection = chroma_client.get_or_create_collection(name="mira_full")
     
     openai.api_key = os.environ['OPENAI_API_KEY']
     return collection
 
-def process_item(module, item, full_name):
+def get_function_info(module, item, full_name):
     library_base_path = os.path.dirname(inspect.getfile(module))  # Get the base path of the library
     try:
         # Check if the item's file path starts with the library's base path
@@ -45,7 +47,7 @@ def process_item(module, item, full_name):
         
     return docstring,source_code
 
-def get_attribute_info(module, item, full_name):
+def get_class_info(module, item, full_name):
     library_base_path = os.path.dirname(inspect.getfile(module))  # Get the base path of the library
     try:
         # Check if the item's file path starts with the library's base path
@@ -78,25 +80,31 @@ def process_submodule(module, submodule,collection):
             if inspect.isfunction(attribute) or inspect.ismethod(attribute) or inspect.isclass(attribute):
                 if inspect.isclass(attribute):
                     for method_name in dir(attribute):
+                        if method_name.startswith('_'):
+                            continue
                         try:
-                            if method_name.startswith('_'):
-                                continue
-    
                             method = getattr(attribute, method_name)
                             if inspect.isfunction(method) or inspect.ismethod(method):
-                                docstring,source_code=process_item(module, method, f"{full_name}.{method_name}")
+                                docstring,source_code=get_function_info(module, method, f"{full_name}.{method_name}")
                                 docs[f"{full_name}.{method_name}"]={'attribute':attribute,'full_name':full_name,
                                                       'docstring':docstring,'source_code':source_code}
+                            else:
+                                docstring,source_code=get_class_info(module, attribute, full_name)
+                                docs[full_name]={'attribute':attribute,'full_name':full_name,
+                                                      'docstring':docstring,'source_code':source_code} 
                         except:
                             continue
                 else:
                     try:
-                        docstring,source_code=get_attribute_info(module, attribute, full_name,inspect.isclass(attribute))
-                        docs[attribute_name]={'attribute':attribute,'full_name':full_name,
-                                              'docstring':docstring,'source_code':source_code}
+                        docstring,source_code=get_function_info(module, attribute, full_name)
+                        docs[full_name]={'attribute':attribute,'full_name':full_name,
+                                              'docstring':docstring,'source_code':source_code} #TODO: replace source code with function signature?
                     except:
                         continue
     if len(docs)>0:
+        ids=collection.get()['ids']
+        docs={doc:docs[doc] for doc in docs if doc not in ids}
+        print(f'Length of new docs is len(docs)')
         docs = get_expanded_descriptions(docs)
         metadatas=[{"function_name": docs[doc]['full_name'], "docstring": docs[doc]['docstring'], "source_code": docs[doc]['source_code']} for doc in docs]
         documents=[docs[doc]['expanded_description'] for doc in docs]
@@ -108,14 +116,14 @@ def process_submodule(module, submodule,collection):
             ids=ids
         )
 
-def process_class_methods(module, cls, class_full_name):
-    for method_name in dir(cls):
-        if method_name.startswith('_'):
-            continue
+# def process_class_methods(module, cls, class_full_name):
+#     for method_name in dir(cls):
+#         if method_name.startswith('_'):
+#             continue
 
-        method = getattr(cls, method_name)
-        if inspect.isfunction(method) or inspect.ismethod(method):
-            process_item(module, method, f"{class_full_name}.{method_name}")
+#         method = getattr(cls, method_name)
+#         if inspect.isfunction(method) or inspect.ismethod(method):
+#             process_item(module, method, f"{class_full_name}.{method_name}")
 
 def get_docstrings(module,collection):
     if hasattr(module, '__path__'):  # It's a package
@@ -206,7 +214,7 @@ def get_expanded_descriptions(docs,max_workers=8,model="gpt-3.5-turbo-1106"):
         docs[key]['expanded_description']=responses[key]
     return docs
 
-def query_function(query,collection, n_results=2):
+def query_function(query,collection, n_results=5):
     # Query the ChromaDB collection
     result = collection.query(
         query_texts=[query],
@@ -222,7 +230,7 @@ def query_function(query,collection, n_results=2):
     return cleaned_results
 
 
-# Example usage
+# Example usage of embedding
 def example_1():
     collection=start_chromadb()
     #submodule example (file)

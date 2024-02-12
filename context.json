@@ -1,7 +1,7 @@
 {
     "slug": "beaker_bio",
     "package": "beaker_bio_context.context",
-    "class_name": "BioContext",
-    "library_names": ["Bio", "mira"],
-    "task_description": "Biological data manipulation"
+    "class_name": "MiraContext",
+    "library_names": ["mira"],
+    "task_description": "Modeling and Visualization"
 }

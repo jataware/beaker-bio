@@ -8,14 +8,15 @@ def start_chromadb(docker=False):
         #Initialize ChromaDB client and create a collection
         client = chromadb.HttpClient(host='localhost', port=8000)
     else:
-        chroma_client = chromadb.PersistentClient(path="./chromabd_functions")
+        #chroma_client = chromadb.PersistentClient(path="./chromabd_functions")
+        chroma_client = chromadb.PersistentClient(path="/bio_context/chromabd_functions")
     
     collection = chroma_client.get_or_create_collection(name="mira_full")
     
     openai.api_key = os.environ['OPENAI_API_KEY']
     return collection
 
-def query_functions(query, n_results=5):
+def query_functions(query, n_results=10):
     '''
     Takes in a query and returns the top n results in the following form:
 
@@ -26,7 +27,7 @@ def query_functions(query, n_results=5):
     ...
     }
     '''
-    collection=start_chromadb(docker=True)
+    collection=start_chromadb(docker=False)
     result = collection.query(
         query_texts=[query],
         n_results=n_results
@@ -41,4 +42,4 @@ def query_functions(query, n_results=5):
 
     return cleaned_results
 
-query_functions("{{query}}")
+#query_functions("{{query}}")

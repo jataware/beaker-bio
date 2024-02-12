@@ -22,8 +22,9 @@ services:
       - OPENAI_API_KEY
     volumes:
        # - ./beaker_kernel:/usr/local/share/jupyter/kernels/beaker_kernel
-      - ./beaker_kernel:/usr/local/share/jupyter/kernels/beaker_kernel
-      - .:/jupyter
+      # - ./beaker_kernel:/usr/local/share/jupyter/kernels/beaker_kernel
+      # - .:/jupyter
+      - .:/bio_context
     command:
       [
         "python",

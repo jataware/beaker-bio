@@ -22,7 +22,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "beaker-kernel~=1.2.3",
+  "beaker-kernel~=1.2.9",
   "biopython~=1.82",
   "chromadb~=0.4.22",
   "bioregistry~=0.10.119",
@@ -31,10 +31,6 @@ dependencies = [
   "datasets~=2.7.0",
   "tenacity~=8.2.3",
   "astunparse~=1.6.3",
-  "torch",
-  "transformers",
-  "accelerate",
-  "xformers",
   "tiktoken~=0.5.2"
 ]
 
