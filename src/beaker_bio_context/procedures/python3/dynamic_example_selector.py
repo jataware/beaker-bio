@@ -10,12 +10,14 @@ def start_chromadb(docker=False,collection_name="mira_examples"):
         client = chromadb.HttpClient(host='localhost', port=8000)
     else:
         chroma_client = chromadb.PersistentClient(path="/bio_context/chromabd_functions")
+        #chroma_client = chromadb.PersistentClient(path="./chromabd_functions")
     
     collection = chroma_client.get_or_create_collection(name=collection_name)
     
     openai.api_key = os.environ['OPENAI_API_KEY']
     return collection
-
+#TODO: change example format to the same as what the agent will see?
+#TODO: change examples to conversations?
 def add_examples():
     examples=[['Can you instantiate a SIR model using the metamodel template?',
 """Code : ```from mira.metamodel import ControlledConversion, NaturalConversion, Concept, Template
@@ -74,6 +76,74 @@ exposed = Concept(name='exposed population', identifiers={'genepio': '0001538'})
   M4 = TemplateModel(templates=M2.templates + [w1])
   TemplateModel.from_json(M4.dict())```
            """],
+           ['Generate a sir model and then create an ode model from that model',
+            """Code : ```import numpy
+import matplotlib.pyplot as plt
+
+from mira.metamodel import *
+from mira.modeling import Model
+from mira.modeling.ode import OdeModel, simulate_ode_model
+template_model = TemplateModel(
+    templates=[
+        NaturalConversion(
+            subject=Concept(name='infected'),
+            outcome=Concept(name='recovered')
+        ),
+        ControlledConversion(
+            subject=Concept(name='susceptible'),
+            outcome=Concept(name='infected'),
+            controller=Concept(name='infected')
+        )
+    ]
+)
+model = Model(template_model)
+ode_model = OdeModel(model)```"""],
+['simulate my model ode_model using some default conditions then plot the results',
+ """Code : ```times = numpy.linspace(0, 25, 100)
+
+res = simulate_ode_model(
+    ode_model=ode_model,
+    initials=numpy.array([0.01, 0, 0.99]),
+    parameters={('infected', 'recovered', 'NaturalConversion', 'rate'): 0.5,
+                ('susceptible', 'infected', 'infected', 'ControlledConversion', 'rate'): 1.1},
+    times=times
+)
+infected, recovered, susceptible = plt.plot(times, res)
+infected.set_color('blue')
+recovered.set_color('orange')
+susceptible.set_color('green')
+plt.show()```"""],
+['Get template model "BIOMD0000000956"',
+ """Code : ```from mira.sources.biomodels import get_template_model
+ template_model = get_template_model('BIOMD0000000956')```"""],
+ ['Stratify my sir template model by 2 different cities',
+  """Code : ```import requests
+  sir_template_model_dict = sir_template_model.dict()
+  rest_url = "http://34.230.33.149:8771"
+  res = requests.post(rest_url + "/api/stratify", json={"template_model": sir_template_model_dict, "key": "city", "strata": ["Boston", "New York City"]})
+print(res.json())```"""],
+['Create a SIR model',
+ """Code : ```import requests
+from mira.metamodel import Concept, ControlledConversion, NaturalConversion, TemplateModel
+
+# Example TemplateModel
+infected = Concept(name="infected population", identifiers={"ido": "0000511"})
+susceptible = Concept(name="susceptible population", identifiers={"ido": "0000514"})
+immune = Concept(name="immune population", identifiers={"ido": "0000592"})
+controlled_conversion = ControlledConversion(
+    controller=infected,
+    subject=susceptible,
+    outcome=infected,
+)
+natural_conversion = NaturalConversion(subject=infected, outcome=immune)
+sir_template_model = TemplateModel(templates=[controlled_conversion, natural_conversion])
+sir_template_model_dict = sir_template_model.dict()
+print(sir_template_model.json())```""",
+"Convert my model to a petrinet",
+"""Code : ```import requests
+rest_url = "http://34.230.33.149:8771"
+res = requests.post(rest_url + "/api/to_petrinet", json=sir_template_model_dict)
+print(res.json())```"""]
     ]
     user_queries=[ex[0] for ex in examples]
     examples_collection=start_chromadb(collection_name="mira_examples_dev1")

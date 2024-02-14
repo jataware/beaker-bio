@@ -95,9 +95,42 @@ Additionally here are some similar examples of similar user requests and your pr
     
 {few_shot_examples}
 """
+        few_shot_logic_examples="""Here is an example of how to perform the workflow.
+        User: 
+        """
+        
+        intro_manual=f"""You are an exceptionally intelligent coding assistant that consistently delivers accurate and reliable responses to user instructions.
+You should ALWAYS think about which functions and classes from mira you are going to use before you write code. Try to use mira as much as possible.
+mira is a framework for representing systems using ontology-grounded meta-model templates, and generating various model implementations and exchange formats from these templates. 
+It also implements algorithms for assembling and querying domain knowledge graphs in support of modeling.
+You MUST have the function signature and docstring handy before using a function. 
+If the functions you want to use are in the context below, no need to look them up again.
+Otherwise, either lookup the available functions from MiraToolset.get_available_functions, 
+search for relevant functions and classes using MiraToolset.search_functions_classes 
+or if you know the particular functions and classes you want to get more information on, use MiraToolset.get_functions_and_classes_docstring
+
+Before you submit the code you have written to the user, you should use your python_repl tool to make sure that the generated code is correct.
+If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
+Once you have checked your code and ensure it is correct using your python_repl tool, use the submit_code tool to submit the code to the user's code environment. 
+
+Below is a dictionary of library help information where the library name is the key
+and the help documentation the value:
+
+mira.dkg - This module contains code for the construction of domain knowledge graphs.
+mira.modeling - This module contains code for modeling. The top level contains the Model class, together with the Variable, Transition, and ModelParameter classes, used to represent a Model.
+mira.metamodel - This module contains information on code related to meta models.
+mira.sources - This module contains code to access models from different sources like json, url, etc..
+mira.terarium_client - This module contains code which allows access to the terarium client. A web application for modeling. This module is not to be used.
+mira.examples - This module contains examples of how to assemble and modify models in MIRA.
+
+Additionally here are some similar examples of similar user requests and your previous successful code generations in the format [[Request,Code]].
+If the request from the user is similar enough to one of these examples, use it to help write code to answer the user's request.
+    
+{few_shot_examples}
+        """
 
         code_environment=f"""These are the variables in the user's current code environment with key value pairs:
-            {variables}
+{variables}
 
 The user has also imported the following modules: {','.join(imported_modules)}. So you don't need to import them when generating code.
 When writing code that edits the variables that the user has in their environment be sure to modify them in place. 
@@ -110,7 +143,7 @@ Here are the functions that you have looked up the docstrings of using the MiraT
 Please answer any user queries or perform user instructions to the best of your ability, but do not guess if you are not sure of an answer.
 """
 
-        result = "\n".join([intro,code_environment,outro])
+        result = "\n".join([intro_manual,code_environment,outro])
         return result
     
     async def retrieve_documentation(self):

@@ -34,8 +34,9 @@ import contextlib
 #TODO: add list of state variables that were instantiated to few shot example search?
 #TODO: add custom within react loop summarization.. save to variable then put in autocontext?
 #TODO: should I just reset between sumbit code calls?
-#TODO: add function sigs to info return
-#TODO: add knowledge of state of notebook to context keys - _ih, _oh (in and out full lists)
+#TODO: add function sigs to info return and skill return
+#TODO: add knowledge of state of notebook to context keys - _ih, _oh (in and out full lists) (look at langchain version..)
+#NEXT:python repl is not working properly, it is not importing the variables correctly
 #TODO: hybrid or keyword search??
 @tool()
 def python_repl(code: str, agent: AgentRef) -> str:
@@ -71,32 +72,6 @@ def python_repl(code: str, agent: AgentRef) -> str:
         sys.stderr = sys.__stderr__
         
         return captured_stdout.getvalue(), captured_stderr.getvalue()
-    
-# class MiraPythonTool(PythonTool):
-#     """
-#     Tool which can be used to run python code. Use this to check correctness of your code before you submit it to the user.
-#     """
-#     @tool()
-#     def run(self, code: str) -> str:
-#         """
-#         Runs python code in a python environment.
-        
-#         The initial setup of the environment will be a copy of the user's environment, including instantiated variables and imported modules.
-#         The environment is not persistent between runs, so any variables created will not be available in subsequent runs.
-#         The only visible effects of this tool are from output to stdout/stderr. If you want to view a result, you MUST print it.
-#         Remember, if you are confused in any way about how to use a library, make sure to call `help(module_name)` to learn as much as you can.
-        
-#         Args:
-#             code (str): The code to run
-        
-#         Returns:
-#             str: The stdout output of the code
-#         """
-#         out, err = self.env.run_script(code)
-#         if err:
-#             raise Exception(err)
-        
-#         return out
 
 
 @toolset()
@@ -109,7 +84,7 @@ class MiraToolset:
     #generate_code.__doc__
 
     @tool(autosummarize=True)
-    async def get_available_functions(self, package_name: str, agent: AgentRef) -> None:
+    async def get_available_functions(self, package_name: str, agent: AgentRef):
         """
         Querying against the module or package should list all available submodules and functions that exist, so you can use this to discover available
         functions and the query the function to get usage information.
@@ -148,7 +123,7 @@ class MiraToolset:
         return functions
     
     @tool(autosummarize=True)
-    async def get_functions_and_classes_docstring(self, list_of_function_or_class_names: list, agent: AgentRef) -> None:
+    async def get_functions_and_classes_docstring(self, list_of_function_or_class_names: list, agent: AgentRef):
         """
         Use this tool to additional information on individual function or class such as their inputs, outputs and description (and generally anything else that would be in a docstring)
         You should ALWAYS use this tool before writing or checking code to check the function signatures of the functions or classes you are about to use.
@@ -176,37 +151,63 @@ class MiraToolset:
             help_string+=f'{func_or_class_name}: {help_text}'
             agent.context.functions[func_or_class_name]=help_text
         return help_string
+    
+    @tool(autosummarize=True)
+    async def search_documentation(self, query: str):
+        """
+        Use this tool to search the documentation for sections relevant to the task you are trying to perform.
+        Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
+        Response will be sections of the documentation that are relevant to your query.
+        
+        Args:
+            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
+        """
+        from .procedures.python3.embed_documents import query_docs
+        return query_docs(query)
+    
+    @tool(autosummarize=True)
+    async def search_functions_classes(self, query: str):
+        """
+        Use this tool to search the code in the mira repo for function and classes relevant to your query.
+        Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
+        Response will be a string with the top few results, each result will have the function or class doc string and the source code (which includes the function signature)
+        
+        Args:
+            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
+        """
+        from .procedures.python3.embed_functions_classes_2 import query_functions_classes
+        return query_functions_classes(query)
 
     get_available_functions.__doc__
 
     #TODO: not really working for ODEs.. not sure it works well in general...
     #TODO: change to multiple queries?
-    @tool(autosummarize=True)
-    async def skill_search(self, query: str, agent: AgentRef) -> None:
-        """
-        This function should be used to search for available classes, functions and methods that are available and relevant to the task described in the `query`.
+    # @tool(autosummarize=True)
+    # async def skill_search(self, query: str, agent: AgentRef) -> None:
+    #     """
+    #     This function should be used to search for available classes, functions and methods that are available and relevant to the task described in the `query`.
 
-        The query should be simple and specific and not overly verbose in order to yield the most relevant results.
+    #     The query should be simple and specific and not overly verbose in order to yield the most relevant results.
 
-        This function will return a search result object of the form:
+    #     This function will return a search result object of the form:
 
-        ```
-        {'function_or_class_name': {
-                        'description': 'description of the function here',
-                        'docstring': 'the docstring of the function here',
-                        'source_code': 'the source code of the function here',
-                        },
-        ...
-        }
-        ```
+    #     ```
+    #     {'function_or_class_name': {
+    #                     'description': 'description of the function here',
+    #                     'docstring': 'the docstring of the function here',
+    #                     'source_code': 'the source code of the function here',
+    #                     },
+    #     ...
+    #     }
+    #     ```
 
-        You should then read the docstrings and the source code to learn how to use the functions/classes/etc and which arguments they take and methods they have.
+    #     You should then read the docstrings and the source code to learn how to use the functions/classes/etc and which arguments they take and methods they have.
 
-        Args:
-            query (str): this is the query that describes the task against which you wish to find matching functions. This should be simple and specific."
-        """
-        from .procedures.python3.query_functions import query_functions
-        return query_functions(query)
+    #     Args:
+    #         query (str): this is the query that describes the task against which you wish to find matching functions. This should be simple and specific."
+    #     """
+    #     from .procedures.python3.query_functions import query_functions
+    #     return query_functions(query)
 
 
 class MiraAgent(NewBaseAgent):
@@ -257,4 +258,5 @@ class MiraAgent(NewBaseAgent):
                 "content": code.strip(),
             }
         )
+        #check if successful then reset check code...
         return result

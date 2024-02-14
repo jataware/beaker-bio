@@ -12,8 +12,8 @@ from functools import wraps
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import List,Union
 import tenacity
-#TODO: need to add classes themselves. Only class functions are exposed right now.
-
+#DONE: need to add classes themselves. Only class functions are exposed right now.
+#TODO: add examples to returned values? Get examples from searching the repo?
 from typing import _SpecialGenericAlias
 
 def start_chromadb(docker=False):
@@ -22,8 +22,8 @@ def start_chromadb(docker=False):
         #Initialize ChromaDB client and create a collection
         client = chromadb.HttpClient(host='localhost', port=8000)
     else:
-        chroma_client = chromadb.PersistentClient(path="./chromabd_functions")
-        #chroma_client = chromadb.PersistentClient(path="/bio_context/chromabd_functions")
+        #chroma_client = chromadb.PersistentClient(path="./chromabd_functions")
+        chroma_client = chromadb.PersistentClient(path="/bio_context/chromabd_functions")
     
     collection = chroma_client.get_or_create_collection(name="mira_full")
     
