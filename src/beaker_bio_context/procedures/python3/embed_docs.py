@@ -160,8 +160,8 @@ def retry_decorator(retry_count=5, delay_seconds=10):
 def check_and_trim_tokens(prompt, model):
     encoding = tiktoken.get_encoding("cl100k_base")
     max_length_dict = {
-        'gpt-3.5-turbo-1106': 16385,
-        'gpt-4-1106-preview':128000, #max tokens out is 4096
+        'gpt-3.5-turbo-0125': 16385,
+        'gpt-4-0125-preview':128000, #max tokens out is 4096
         "text-embedding-ada-002":8192,
     }
     max_tokens = max_length_dict[model]
@@ -172,7 +172,7 @@ def check_and_trim_tokens(prompt, model):
     return prompt
        
 @retry_decorator(retry_count=3, delay_seconds=5)
-def ask_gpt(prompt, model="gpt-3.5-turbo-1106",**kwargs):
+def ask_gpt(prompt, model="gpt-3.5-turbo-0125",**kwargs):
     """Send a prompt to GPT and get a response."""
     checked_prompt = check_and_trim_tokens(prompt, model)
     response = openai.chat.completions.create(
