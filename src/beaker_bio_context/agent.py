@@ -23,6 +23,7 @@ import inspect
 from pydantic import BaseModel
 from typing import get_args, get_origin
 from typing import Annotated,Union,List
+
 #TODO: improve notebook representation/knowledge that the agent has..
     #TODO: add descriptions to code env objects being passed around in a generic way..
     #TODO: variables include some extra background crap sometimes
@@ -35,7 +36,7 @@ from typing import Annotated,Union,List
 #TODO: try docstring enforcement - ie they must put in the correct variables.. (think this is true now just the mira errors are more nefarious)
 #TODO: try using gpt 3.5 for some things..
 #TODO: rewrite files in easyTool format using gpt-3.5..
-#TODO: try examples from darpa-askem beaker mira examples..
+#DONE: try examples from darpa-askem beaker mira examples..
 
 #TODO: add list of state variables that were instantiated to few shot example search?
 
