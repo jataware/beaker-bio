@@ -24,6 +24,9 @@ from pydantic import BaseModel
 from typing import get_args, get_origin
 from typing import Annotated,Union,List
 
+#TODO: fix get examples full...
+#TODO: add debug specific functionality (like lookup for functions which are used incorrectly, etc..)
+#TODO: make classes generic and add description and submodule description generation so that this context only takes name, code files, and doc files..
 #TODO: improve notebook representation/knowledge that the agent has..
     #TODO: add descriptions to code env objects being passed around in a generic way..
     #TODO: variables include some extra background crap sometimes
@@ -82,8 +85,8 @@ from typing import Annotated,Union,List
 
 
 @toolset()
-class MiraToolset:
-    """Toolset for Mira context"""
+class ChirhoToolset: #to change dynamically on new context creation
+    """Toolset for Chirho context""" #to change dynamically on new context creation
 #    @tool(autosummarize=True)
 #    async def generate_code_using_lats(self, query: str, agent: AgentRef) -> None:
 #        use_lats(query,model='gpt-3.5-turbo-1106',tree_depth=2)#'gpt-4-1106-preview''gpt-4-1106-preview'
@@ -95,8 +98,8 @@ class MiraToolset:
         """
         Querying against the module or package should list all available submodules and functions that exist, so you can use this to discover available
         functions and the query the function to get usage information.
-        You should ALWAYS try to run this on specific submodules, not entire libraries. For example, instead of running this on `mira` you should
-        run this function on `mira.modeling`. In fact, there should almost always be a `.` in the `package_name` argument.
+        You should ALWAYS try to run this on specific submodules, not entire libraries. For example, instead of running this on `chirho` you should
+        run this function on `chirho.interventional`. In fact, there should almost always be a `.` in the `package_name` argument.
         
         This function should be used to discover the available functions in the target library or module and get an object containing their docstrings so you can figure out how to use them.
 
@@ -109,7 +112,7 @@ class MiraToolset:
         Read the docstrings to learn how to use the functions and which arguments they take.
 
         Args:
-            package_name (str): this is the name of the package to get information about. For example "mira.modeling"   
+            package_name (str): this is the name of the package to get information about. For example "chirho.counterfactual"   
         """
         functions = {}
         code = agent.context.get_code("info", {"package_name": package_name})
@@ -133,11 +136,11 @@ class MiraToolset:
     # async def get_class_or_function_full_information(self,class_or_function_name:str):
     #     """ This tool will get function signatures and doc strings for all the classes and function names which are required to use the input class or function.
     #     For example if you had a class module.class1 which took as inputs either class2,class3 or class 4, This function would return information for class 1,2,3 and 4.
-    #     Input to this tool should be the class or function name with the complete module hierarchy ie. mira.modeling.triples.Triple
-    #     Note that this can also be used on class methods like mira.metamodel.template_model.TemplateModel.get_parameters_from_rate_law to get more information on how to use them.
+    #     Input to this tool should be the class or function name with the complete module hierarchy ie. chirho.counterfactual.internals.site_is_ambiguous
+    #     Note that this can also be used on class methods like chirho.indexed.ops.IndexSet.__init__ to get more information on how to use them.
         
     #     Args:
-    #         class_or_function_name (str): this is a string with the class or function name with full module hierarchy For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"] 
+    #         class_or_function_name (str): this is a string with the class or function name with full module hierarchy For example ["chirho.explainable.handlers.explanation.SplitSubsets","chirho.counterfactual.internals.site_is_ambiguous"] 
     #     """
     #     def get_class_information(cls):
     #         function_information=[]
@@ -237,11 +240,12 @@ class MiraToolset:
         
         Read the information returned to learn how to use the function or class and which arguments they take.
         
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
+        The function and class names used in the input to this tool should include the entire module hierarchy, ie. chirho.modeling.triples.Triple
         
         Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
+            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["chirho.modeling.triples.Triple","chirho.explainable.handlers.explanation.SplitSubsets"]   
         """
+        #to change dynamically on new context creation
         #TODO: figure out cause of this and remove ugly filter
         if type(list_of_function_or_class_names)==dict:
             list_of_function_or_class_names=list_of_function_or_class_names['list_of_function_or_class_names']
@@ -267,11 +271,12 @@ class MiraToolset:
         
         Read the information returned to learn how to use the function or class and which arguments they take.
         
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
+        The function and class names used in the input to this tool should include the entire module hierarchy, ie. chirho.counterfactual.internals.site_is_ambiguous
         
         Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
+            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["chirho.modeling.triples.Triple","chirho.explainable.handlers.explanation.SplitSubsets"]     
         """
+        #to change dynamically on new context creation
         #TODO: figure out cause of this and remove ugly filter
         if type(list_of_function_or_class_names)==dict:
             list_of_function_or_class_names=list_of_function_or_class_names['list_of_function_or_class_names']
@@ -297,21 +302,23 @@ class MiraToolset:
         Response will be sections of the documentation that are relevant to your query.
         
         Args:
-            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
+            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package" 
         """
+        #to change dynamically on new context creation
         from .procedures.python3.embed_documents import query_docs
         return query_docs(query)
     
     @tool(autosummarize=True)
     async def search_functions_classes(self, query: str):
         """
-        Use this tool to search the code in the mira repo for function and classes relevant to your query.
+        Use this tool to search the code in the chirho repo for function and classes relevant to your query.
         Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
         Response will be a string with the top few results, each result will have the function or class doc string and the source code (which includes the function signature)
         
         Args:
             query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
         """
+        #to change dynamically on new context creation
         from .procedures.python3.embed_functions_classes_2 import query_functions_classes
         return query_functions_classes(query)
 
@@ -347,7 +354,7 @@ class MiraToolset:
     #     return query_functions(query)
 
 
-class MiraAgent(NewBaseAgent):
+class ChirhoAgent(NewBaseAgent):
     """
     You are assisting us in performing important scientific tasks.
 
@@ -355,7 +362,7 @@ class MiraAgent(NewBaseAgent):
     """
 
     def __init__(self, context: BaseContext = None, tools: list = None, **kwargs):
-        tools = [MiraToolset]
+        tools = [ChirhoToolset]
         super().__init__(context, tools, **kwargs)
         with open('context.json', 'r') as f:
             self.context_conf = json.load(f)
@@ -365,7 +372,7 @@ class MiraAgent(NewBaseAgent):
             
 # Here is an example of a code block to be submitted - 
 # ```
-# from mira.sources.biomodels import get_template_model
+# from chirho.sources.biomodels import get_template_model
 # template_model = get_template_model('BIOMD0000000956')
 # ```  
 #to over-ride to make things happen before react loop (ie few shot dynamic examples..)
@@ -422,7 +429,7 @@ class MiraAgent(NewBaseAgent):
     #         traceback_str = traceback.format_exc()
     #         sys.stderr.write(str(e))
     #         print_out='''End of Traceback.\n It seems like the code you attempted to run was unsuccessful. 
-    #         If you are having difficulty with a particular function(s) or class(es) look up their source code using the MiraToolset.get_functions_and_classes_source_code tool please'''
+    #         If you are having difficulty with a particular function(s) or class(es) look up their source code using the chirhoToolset.get_functions_and_classes_source_code tool please'''
     #         self.checked_code=False
     #         self.code_attempts+=1
     #         if self.code_attempts>=2:
@@ -439,13 +446,13 @@ class MiraAgent(NewBaseAgent):
     #     #TODO: update variables in autocontext or nah?
     #     return f'Stdout:{std_out}\n\n Std_error with traceback : {traceback_str}\n{print_out}'#, print_out
   
-    # #If you try to use this tool before successful running the code in the MiraAgent.python_repl tool, you will receieve a response letting you know you must check your code.
+    # #If you try to use this tool before successful running the code in the ChirhoAgent.python_repl tool, you will receieve a response letting you know you must check your code.
     # #If you attempted to run your code but it did not run successfully you will not be able to run this code.
     # @tool()
     # async def submit_code(self, code: str, agent: AgentRef, loop: LoopControllerRef) -> None:
     #     """
-    #     Use this after you have checked your code using the MiraAgent.python_repl tool and are ready to submit your code to the user.
-    #     If you try to use this tool before successful running the code in the MiraAgent.python_repl tool, you will receieve a response letting you know you must check your code.
+    #     Use this after you have checked your code using the ChirhoAgent.python_repl tool and are ready to submit your code to the user.
+    #     If you try to use this tool before successful running the code in the ChirhoAgent.python_repl tool, you will receieve a response letting you know you must check your code.
     #     If you attempted to run your code but it did not run successfully you will not be able to run this code.
         
     #     Ensure to handle any required dependencies, and provide a well-documented and efficient solution. Feel free to create helper functions or classes if needed.
@@ -453,7 +460,7 @@ class MiraAgent(NewBaseAgent):
     #     Please generate the code as if you were programming inside a Jupyter Notebook and the code is to be executed inside a cell.
     #     You MUST wrap the code with a line containing three backticks before and after the generated code like the code below but replace the 'triple_backticks':
     #     ```
-    #     import mira
+    #     import chirho
     #     ```
 
     #     No additional text is needed in the response, just the code block with the triple backticks.
@@ -480,7 +487,7 @@ class MiraAgent(NewBaseAgent):
     #             self.code_attempts=0
     #             return 'You have already attempted to run code unsucessfully twice. Please let the user know the issues you are having and include your attempted code in your final_answer.'    
     #         else:
-    #             return 'You must check your code using the MiraAgent.python_repl tool before submitting code. Please ensure you have all function and class information necessary and then use the MiraAgent.python_repl tool.'
+    #             return 'You must check your code using the ChirhoAgent.python_repl tool before submitting code. Please ensure you have all function and class information necessary and then use the ChirhoAgent.python_repl tool.'
 
     
     #no_repl version
@@ -495,7 +502,7 @@ class MiraAgent(NewBaseAgent):
         Please generate the code as if you were programming inside a Jupyter Notebook and the code is to be executed inside a cell.
         You MUST wrap the code with a line containing three backticks before and after the generated code like the code below but replace the 'triple_backticks':
         ```
-        import mira
+        import chirho
         ```
 
         No additional text is needed in the response, just the code block with the triple backticks.

@@ -2,7 +2,7 @@
 import re
 import os
 import openai
-def start_chromadb(docker=False,collection_name="mira_full",path="./chromabd_functions"):
+def start_chromadb(docker=False,collection_name="chiro_full",path="./chromabd_functions"):
     import chromadb
     if docker:
         #Initialize ChromaDB client and create a collection

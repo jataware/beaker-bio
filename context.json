@@ -1,7 +1,7 @@
 {
     "slug": "beaker_bio",
     "package": "beaker_bio_context.context",
-    "class_name": "MiraContext",
-    "library_names": ["mira"],
-    "task_description": "Modeling and Visualization"
+    "class_name": "ChirhoContext",
+    "library_names": ["chirho"],
+    "task_description": "Causal Reasoning"
 }

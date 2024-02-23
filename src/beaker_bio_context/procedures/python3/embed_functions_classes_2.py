@@ -6,7 +6,7 @@ from .embed_utils import RecursiveCharacterTextSplitter,count_words,start_chroma
 import os
 
 
-def get_full_module_name(file_path, code_directory,code_repo_name='mira'):
+def get_full_module_name(file_path, code_directory,code_repo_name='chirho'):
     """
     Converts a file path to its full module name, based on the project root.
     
@@ -21,9 +21,9 @@ def get_full_module_name(file_path, code_directory,code_repo_name='mira'):
     module_name=f'{code_repo_name}.'+module_name
     return module_name
 
-def extract_function_and_class_source_and_docstrings(file_path,code_directory,code_repo_name='mira'):
+def extract_function_and_class_source_and_docstrings(file_path,code_directory,code_repo_name='chirho'):
     """Extracts function and class (including methods) source code, their docstrings, and module from a given Python file."""
-    module_name = get_full_module_name(file_path,code_directory,code_repo_name='mira')
+    module_name = get_full_module_name(file_path,code_directory,code_repo_name='chirho')
     with open(file_path, 'r') as file:
         file_contents = file.read()
         source_lines = file_contents.splitlines()
@@ -55,7 +55,7 @@ def extract_item_details(item, source_lines, kind, module_name):
         return None 
     
 
-def process_directory(directory,max_lines=40,chunk_size=1500,library_name="mira"):
+def process_directory(directory,max_lines=40,chunk_size=1500,library_name="chirho"):
     """Extracts functions and their docstrings in a repository."""
     documents = []
     #https://github.com/DARPA-ASKEM/beaker-elwood/blob/main/src/beaker_elwood_context/agent.py
@@ -75,9 +75,9 @@ def process_directory(directory,max_lines=40,chunk_size=1500,library_name="mira"
 
 
         
-def embed_functions_and_classes(function_dir,collection_name="mira_function_index3",library_name="mira"):
+def embed_functions_and_classes(function_dir,collection_name="chirho_function_index3",library_name="chirho"):
     #get functions and classes from all .py files in dir
-    documents= process_directory(function_dir,library_name="mira")
+    documents= process_directory(function_dir,library_name="chirho")
     
     collection = start_chromadb(collection_name=collection_name)
     
@@ -116,7 +116,7 @@ def embed_functions_and_classes(function_dir,collection_name="mira_function_inde
     print('Embedded Docs')
         
 
-def query_functions_classes(query,collection_name="mira_function_index3",path="/bio_context/src/beaker_bio_context/chromabd_functions",n_results=5):
+def query_functions_classes(query,collection_name="chirho_function_index3",path="/bio_context/chromabd_functions",n_results=5):
     collection = start_chromadb(collection_name=collection_name,path=path)
     result = collection.query(
         query_texts=[query],

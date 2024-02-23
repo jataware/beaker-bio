@@ -6,7 +6,7 @@ from .embed_utils import RecursiveCharacterTextSplitter,count_words,start_chroma
 logger = logging.getLogger(__name__)
 #TODO: add openai embedder, esp for code..
 #TODO: add rst splitter from elsewhere?
-def embed_documents(documentation_dir,collection_name="mira_documentation_index",top_k=5):
+def embed_documents(documentation_dir,collection_name="chiro_documentation_index"): #to change dynamically on new context creation
         collection = start_chromadb(collection_name=collection_name)
         #get docs
         documents=glob.glob(documentation_dir+'/**',recursive=True)
@@ -41,7 +41,7 @@ def embed_documents(documentation_dir,collection_name="mira_documentation_index"
         )
         print('Embedded Docs')
 
-def query_docs(query,collection_name="mira_documentation_index",path="/bio_context/src/beaker_bio_context/chromabd_functions",n_results=5):
+def query_docs(query,collection_name="chiro_documentation_index",path="/bio_context/chromabd_functions",n_results=5): #to change dynamically on new context creation
     collection = start_chromadb(collection_name=collection_name,path=path)
     result = collection.query(
         query_texts=[query],

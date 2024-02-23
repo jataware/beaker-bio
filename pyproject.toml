@@ -22,8 +22,11 @@ classifiers = [
 ]
 
 dependencies = [
-  "beaker-kernel~=1.3.0",
-  "biopython~=1.82",
+  "beaker-kernel~=1.3.2",
+  #"biopython~=1.82",
+  "chirho[extras]~=0.2.0",
+  "pyro-ppl~=1.8.6",
+  "pyro-api~=0.1.2",
   "chromadb~=0.4.22",
   "bioregistry~=0.10.119",
   "pygraphviz~=1.12",
@@ -31,7 +34,8 @@ dependencies = [
   "datasets~=2.7.0",
   "tenacity~=8.2.3",
   "astunparse~=1.6.3",
-  "tiktoken~=0.5.2"
+  "tiktoken~=0.5.2",
+  "torchdiffeq"
 ]
 
 [tool.hatch.metadata]
