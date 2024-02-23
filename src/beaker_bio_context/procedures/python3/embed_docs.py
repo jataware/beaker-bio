@@ -23,9 +23,9 @@ def start_chromadb(docker=False):
         client = chromadb.HttpClient(host='localhost', port=8000)
     else:
         #chroma_client = chromadb.PersistentClient(path="./chromabd_functions")
-        chroma_client = chromadb.PersistentClient(path="/bio_context/chromabd_functions")
+        chroma_client = chromadb.PersistentClient(path="/bio_context/chromadb_functions")
     
-    collection = chroma_client.get_or_create_collection(name="mira_full")
+    collection = chroma_client.get_or_create_collection(name="full")
     
     openai.api_key = os.environ['OPENAI_API_KEY']
     return collection

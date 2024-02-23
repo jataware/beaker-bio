@@ -6,9 +6,9 @@
 from src.beaker_bio_context.procedures.python3.embed_docs import *
 from nbconvert import PythonExporter
 
-def get_examples_from_code_doc_file(file_path,notebook=False,doc_file=False):
+def get_examples_from_code_doc_file(file_path,notebook=False,doc_file=False,library_name=''):
     #TODO: change so that description is more similar to a user request..
-    multiple_examples_in_examples_py_file_prompt='''The code below contains several examples of how to use the mira library.
+    multiple_examples_in_examples_py_file_prompt=f'''The code below contains several examples of how to use the {library_name} library.
     Please break the code into different sections, each of which contains an example and give a short description of the example. 
     Give the start line and stop line of each example section, any imports or code from previous section which are required to make the example section compile properly 
     and short description of the example. Please format your answer in json format as follows: [{"start_line":int,"stop_line":int,"description":str,"required_code_additions":str}] with one dict per example. 
@@ -52,60 +52,6 @@ def get_examples_from_code_doc_file(file_path,notebook=False,doc_file=False):
          #TODO: add something to fix paths in code examples?   
         return code_examples
 
-example_res='''Here is the breakdown of the code into different sections, each accompanied by its description, start and stop lines, and any required code from previous sections to compile properly:
-
-```json
-[
-  {
-    "start_line": 18,
-    "stop_line": 33,
-    "description": "Defines a basic SIR (Susceptible, Infected, Recovered) model using the mira library.",
-    "required_code_additions": "from mira.metamodel import ControlledConversion, NaturalConversion, TemplateModel\nfrom .concepts import susceptible, infected, recovered"
-  },
-  {
-    "start_line": 35,
-    "stop_line": 63,
-    "description": "Defines a parameterized SIR model adding parameters and initial values for populations, demonstrating a more detailed configuration.",
-    "required_code_additions": "from copy import deepcopy as _d\nimport sympy\nfrom mira.metamodel import ControlledConversion, NaturalConversion, TemplateModel, Initial, Parameter, safe_parse_expr\nfrom .concepts import susceptible, infected, recovered"
-  },
-  {
-    "start_line": 66,
-    "stop_line": 95,
-    "description": "Illustrates the creation of a two-city SIR model, where susceptible, infected, and recovered individuals can move between the cities.",
-    "required_code_additions": "from mira.metamodel import ControlledConversion, NaturalConversion, TemplateModel\nfrom .concepts import susceptible, infected, recovered\ninfection = ControlledConversion(subject=susceptible, outcome=infected, controller=infected)\nrecovery = NaturalConversion(subject=infected, outcome=recovered)"
-  },
-  {
-    "start_line": 97,
-    "stop_line": 111,
-    "description": "Shows a data structure configuration for a bilayer SIR model, highlighting how model data can be organized in a non-standard, custom format.",
-    "required_code_additions": ""
-  },
-  {
-    "start_line": 113,
-    "stop_line": 132,
-    "description": "Defines an SVIR (Susceptible, Verbally Infected, Infected, Recovered) model, distinguishing between symptomatic and asymptomatic infections.",
-    "required_code_additions": "from mira.metamodel import GroupedControlledConversion, NaturalConversion, TemplateModel\nfrom .concepts import susceptible, infected_symptomatic, infected_asymptomatic, recovered"
-  },
-  {
-    "start_line": 134,
-    "stop_line": 149,
-    "description": "Updates a previously defined parameterized SIR model with normalized initial values and unit specifications, suitable for documentation and testing purposes.",
-    "required_code_additions": "from copy import deepcopy as _d\nimport sympy\nfrom mira.metamodel import TemplateModel, SympyExprStr, Unit\nfrom .concepts import susceptible, infected, recovered\nsir_parameterized = _d(your_previous_sir_parameterized_definition_here) # Ensure you replace 'your_previous_sir_parameterized_definition_here' with the actual variable or structure."
-  }
-]
-```'''
-#note this example must be run from mira.examples dir where it was extracted from..
-example_1='\n'.join(lines[18:35])
-example_1='from mira.metamodel import ControlledConversion, NaturalConversion, TemplateModel\nfrom .concepts import susceptible, infected, recovered'
-
-mira_examples=["/media/hdd/Code/beaker-bio/src/beaker_bio_context/examples/metamodel_intro.ipynb",
-"/media/hdd/Code/beaker-bio/src/beaker_bio_context/examples/model_api.ipynb",
-"/media/hdd/Code/beaker-bio/src/beaker_bio_context/examples/regnets.ipynb",
-"/media/hdd/Code/beaker-bio/src/beaker_bio_context/examples/simulation.ipynb"]
-mira_code_examples=[]
-for example in mira_examples:
-    mira_code_examples.append(get_examples_from_code_doc_file(example,notebook=True))
-
 
 def does_this_file_contain_examples(code_file_contents):
     prompt="""Below is the content of a file from the mira library. 
@@ -117,6 +63,14 @@ def does_this_file_contain_examples(code_file_contents):
 
 def process_directory(directory):
     example_code_files,example_doc_files=filter_directory(directory)
+    examples_json=[]
+    docs_json=process_doc_files(example_doc_files)
+    code_json=process_code_files(example_code_files)
+    examples_json=docs_json+code_json           
+    json.dump(examples_json,open(f'{directory.replace("/","_")}_extracted_code_examples.json','w')) 
+    return  examples_json     
+        
+def process_doc_files(example_doc_files:list):
     examples_json=[]
     if len(example_doc_files)>0:
         doc_files_results=process_files(example_doc_files,True)
@@ -131,6 +85,11 @@ def process_directory(directory):
                                           'origination_method':'extract_from_library_automatic',
                                           'code':item['code'],
                                           'description':item['description']})
+    return examples_json
+    
+
+def process_code_files(example_code_files:list):
+    examples_json=[]
     if len(example_code_files)>0:
         code_files_results=process_files(example_code_files,False)
         for key in code_files_results:
@@ -145,12 +104,7 @@ def process_directory(directory):
                                           'code':code, 
                                           'description':item['description']})
                     #TODO: add compilation check, maybe later??
-    json.dump(examples_json,open(f'{directory.replace("/","_")}_extracted_code_examples.json','w')) 
-    return  examples_json     
-        
-    
-    
-    
+    return examples_json    
     
 def filter_directory(directory):
     filter_prompt="""Below is the content and file path of a file from the mira library. 
@@ -201,11 +155,11 @@ def filter_directory(directory):
     
     return example_code_files,example_doc_files
 
-def process_files(example_files,doc_files=False):
+def process_files(example_files,doc_files=False,library_name=''):
     #pass in a list of either code files or doc file path strings
     results = {}
     with ThreadPoolExecutor() as executor:
-        futures = {executor.submit(get_examples_from_code_doc_file, file,file.endswith('.ipynb'),doc_files): file for file in example_files}
+        futures = {executor.submit(get_examples_from_code_doc_file, file,file.endswith('.ipynb'),doc_files,library_name): file for file in example_files}
         for future in as_completed(futures):
             file = futures[future]
             try:
@@ -215,7 +169,7 @@ def process_files(example_files,doc_files=False):
                 print(f"Error processing file '{file}': {e}")    
     return results
     
-true_code_examples=['/media/hdd/Code/beaker-bio/src/beaker_bio_context/code/examples/decapodes/decapodes_examples.py',
+mira_code_examples=['/media/hdd/Code/beaker-bio/src/beaker_bio_context/code/examples/decapodes/decapodes_examples.py',
                     '/media/hdd/Code/beaker-bio/src/beaker_bio_context/code/examples/chime.py',
                     "/media/hdd/Code/beaker-bio/src/beaker_bio_context/code/examples/concepts.py",
                     "/media/hdd/Code/beaker-bio/src/beaker_bio_context/code/examples/jin2022.py",
@@ -257,7 +211,4 @@ true_code_examples=['/media/hdd/Code/beaker-bio/src/beaker_bio_context/code/exam
 "/media/hdd/Code/beaker-bio/src/beaker_bio_context/examples/hackathon_2023.10/dkg_grounding_model_comparison.ipynb",
 "/media/hdd/Code/beaker-bio/src/beaker_bio_context/examples/hackathon_2023.10/Ingesting Decapode Compute Graph Demo.ipynb",
 "/media/hdd/Code/beaker-bio/src/beaker_bio_context/examples/hackathon_2023.10/stratification_autoname.ipynb"]  
-
-true_doc_examples =[]            
-#TODO: do mira in parallel.. #detect file type by extension (.rst,.md,.py,.ipynb)
 

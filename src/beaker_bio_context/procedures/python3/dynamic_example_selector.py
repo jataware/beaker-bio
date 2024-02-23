@@ -3,7 +3,7 @@ import os
 import chromadb
 import openai
 import json
-def start_chromadb(docker=False,collection_name="mira_examples",path="/bio_context/chromabd_functions"):
+def start_chromadb(docker=False,collection_name="examples",path="/bio_context/chromadb_functions"):
 
     if docker:
         #Initialize ChromaDB client and create a collection
@@ -32,14 +32,14 @@ def add_examples(json_files:list=['_media_hdd_Code_beaker-bio_src_beaker_bio_con
                               'origination_source':example['origination_source'],
                               'origination_source_type':example['origination_source_type']})
     #TODO: add check for existing docs..
-    u_query_collection=start_chromadb(collection_name="user_queries_dev5",path="./chromabd_functions")
+    u_query_collection=start_chromadb(collection_name="user_queries",path="./chromadb_functions")
     u_query_collection.add(
         documents=['Request: ' + query for query in user_queries_or_descriptions],
         metadatas=metadatas, #TODO: maybe add functions or classes in the code examples for easier lookup?
         ids=[str(i) for i in range(len(user_queries_or_descriptions))] #TODO: make more descriptive?
     )
     #separate index for user queries then just use sim search on query?
-    examples_collection=start_chromadb(collection_name="mira_examples_dev5",path="./chromabd_functions")
+    examples_collection=start_chromadb(collection_name="examples",path="./chromadb_functions")
     examples_collection.add(
         documents=code_strings, #add back Code: ?
         metadatas=metadatas, #TODO: maybe add functions or classes in the code examples for easier lookup?
@@ -47,8 +47,8 @@ def add_examples(json_files:list=['_media_hdd_Code_beaker-bio_src_beaker_bio_con
     )
     
 def query_examples(query, n_results=5):
-    u_query_collection=start_chromadb(collection_name="user_queries_dev5")
-    examples_collection=start_chromadb(collection_name="mira_examples_dev5")
+    u_query_collection=start_chromadb(collection_name="user_queries")
+    examples_collection=start_chromadb(collection_name="examples")
     results=u_query_collection.query(query_texts=[query],
                     n_results=n_results)
     examples_ids=results['ids'][0] 
@@ -63,7 +63,7 @@ def convert_manual_examples_to_new_examples_format(manual_examples:list):
         if not code.startswith('```') :code='```'+code
         if not code.endswith('```'):code=code+'```'
         manual_examples_json.append({'origination_source_type':'code_file',
-                          'origination_source':'mira_library',
+                          'origination_source':'custom_library',
                           'origination_method':'extract_from_library_manual',
                           'code':code, 
                           'description':item[0]})

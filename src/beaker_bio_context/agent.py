@@ -33,10 +33,10 @@ from typing import Annotated,Union,List
 #TODO: convert MUST and ALWAYS to enforcable or directed flow
 #TODO: add knowledge of state of notebook to context keys - _ih, _oh (in and out full lists) (look at langchain version..)
 #TODO: add custom within react loop summarization.. save to variable then put in autocontext? Maybe a dialog where I ask the agent which of these is useful to save then only save those?
-#TODO: try docstring enforcement - ie they must put in the correct variables.. (think this is true now just the mira errors are more nefarious)
+#TODO: try docstring enforcement - ie they must put in the correct variables.. (think this is true now just the LIBRARY_NAME errors are more nefarious)
 #TODO: try using gpt 3.5 for some things..
 #TODO: rewrite files in easyTool format using gpt-3.5..
-#DONE: try examples from darpa-askem beaker mira examples..
+#DONE: try examples from darpa-askem beaker LIBRARY_NAME examples..
 
 #TODO: add list of state variables that were instantiated to few shot example search?
 
@@ -45,58 +45,17 @@ from typing import Annotated,Union,List
 #TODO: add few shot examples of actual flow (ie conversations)
 #TODO: actual codelats or code completion chains with self reflection..
 
-# @tool()
-# def python_repl(code: str, agent: AgentRef) -> str:
-#         """
-#         Tool which can be used to run python code. Use this to check correctness of your code before you submit it to the user.
-#         Runs python code in a python environment.
-        
-#         The initial setup of the environment will be a copy of the user's environment, including instantiated variables and imported modules.
-#         The environment is not persistent between runs, so any variables created will not be available in subsequent runs.
-#         The only visible effects of this tool are from output to stdout/stderr. If you want to view a result, you MUST print it.
-#         Remember, if you are confused in any way about how to use a library, make sure to call `help(module_name)` to learn as much as you can.
-        
-#         Args:
-#             code (str): The code to run
-        
-#         Returns:
-#             str: The stdout output and standard error of the code
-#         """
-#         repl_locals=agent.context.variables
-#         repl_modules=agent.context.imported_modules
-#         captured_stdout = io.StringIO()
-#         captured_stderr = io.StringIO()
-#         sys.stdout = captured_stdout
-#         sys.stderr = captured_stderr
-#         code='\n'.join([f'import {module}' for module in repl_modules])+'\n'+code
-#         try:
-#             exec(code, repl_locals)
-#         except Exception as e:
-#             sys.stderr.write(str(e))
-            
-#         # restore stdout/stderr
-#         sys.stdout = sys.__stdout__
-#         sys.stderr = sys.__stderr__
-        
-#         return captured_stdout.getvalue(), captured_stderr.getvalue()
-
-
 @toolset()
-class MiraToolset:
-    """Toolset for Mira context"""
-#    @tool(autosummarize=True)
-#    async def generate_code_using_lats(self, query: str, agent: AgentRef) -> None:
-#        use_lats(query,model='gpt-3.5-turbo-1106',tree_depth=2)#'gpt-4-1106-preview''gpt-4-1106-preview'
-
-    #generate_code.__doc__
+class Toolset:
+    """Toolset for our context"""
 
     @tool(autosummarize=True)
     async def get_available_functions(self, package_name: str, agent: AgentRef):
         """
         Querying against the module or package should list all available submodules and functions that exist, so you can use this to discover available
         functions and the query the function to get usage information.
-        You should ALWAYS try to run this on specific submodules, not entire libraries. For example, instead of running this on `mira` you should
-        run this function on `mira.modeling`. In fact, there should almost always be a `.` in the `package_name` argument.
+        You should ALWAYS try to run this on specific submodules, not entire libraries. For example, instead of running this on `LIBRARY_NAME` you should
+        run this function on `SUBMODULE_EXAMPLE`. In fact, there should almost always be a `.` in the `package_name` argument.
         
         This function should be used to discover the available functions in the target library or module and get an object containing their docstrings so you can figure out how to use them.
 
@@ -109,7 +68,7 @@ class MiraToolset:
         Read the docstrings to learn how to use the functions and which arguments they take.
 
         Args:
-            package_name (str): this is the name of the package to get information about. For example "mira.modeling"   
+            package_name (str): this is the name of the package to get information about. For example "SUBMODULE_EXAMPLE"   
         """
         functions = {}
         code = agent.context.get_code("info", {"package_name": package_name})
@@ -133,11 +92,11 @@ class MiraToolset:
     # async def get_class_or_function_full_information(self,class_or_function_name:str):
     #     """ This tool will get function signatures and doc strings for all the classes and function names which are required to use the input class or function.
     #     For example if you had a class module.class1 which took as inputs either class2,class3 or class 4, This function would return information for class 1,2,3 and 4.
-    #     Input to this tool should be the class or function name with the complete module hierarchy ie. mira.modeling.triples.Triple
-    #     Note that this can also be used on class methods like mira.metamodel.template_model.TemplateModel.get_parameters_from_rate_law to get more information on how to use them.
+    #     Input to this tool should be the class or function name with the complete module hierarchy ie. CLASS_EXAMPLE
+    #     Note that this can also be used on class methods like CLASS_METHOD_EXAMPLE to get more information on how to use them.
         
     #     Args:
-    #         class_or_function_name (str): this is a string with the class or function name with full module hierarchy For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"] 
+    #         class_or_function_name (str): this is a string with the class or function name with full module hierarchy For example ["CLASS_EXAMPLE","FUNCTION_EXAMPLE"] 
     #     """
     #     def get_class_information(cls):
     #         function_information=[]
@@ -237,10 +196,10 @@ class MiraToolset:
         
         Read the information returned to learn how to use the function or class and which arguments they take.
         
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
+        The function and class names used in the input to this tool should include the entire module hierarchy, ie. CLASS_EXAMPLE
         
         Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
+            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["CLASS_EXAMPLE","FUNCTION_EXAMPLE"]   
         """
         #TODO: figure out cause of this and remove ugly filter
         if type(list_of_function_or_class_names)==dict:
@@ -267,10 +226,10 @@ class MiraToolset:
         
         Read the information returned to learn how to use the function or class and which arguments they take.
         
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
+        The function and class names used in the input to this tool should include the entire module hierarchy, ie. CLASS_EXAMPLE
         
         Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
+            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["CLASS_EXAMPLE","FUNCTION_EXAMPLE"]   
         """
         #TODO: figure out cause of this and remove ugly filter
         if type(list_of_function_or_class_names)==dict:
@@ -297,7 +256,7 @@ class MiraToolset:
         Response will be sections of the documentation that are relevant to your query.
         
         Args:
-            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
+            query (str): Natural language query. Some Examples - DOCUMENTATION_QUERY_EXAMPLES
         """
         from .procedures.python3.embed_documents import query_docs
         return query_docs(query)
@@ -305,19 +264,18 @@ class MiraToolset:
     @tool(autosummarize=True)
     async def search_functions_classes(self, query: str):
         """
-        Use this tool to search the code in the mira repo for function and classes relevant to your query.
+        Use this tool to search the code in the LIBRARY_NAME repo for function and classes relevant to your query.
         Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
         Response will be a string with the top few results, each result will have the function or class doc string and the source code (which includes the function signature)
         
         Args:
-            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
+            query (str): Natural language query. Some Examples - DOCUMENTATION_QUERY_EXAMPLES
         """
         from .procedures.python3.embed_functions_classes_2 import query_functions_classes
         return query_functions_classes(query)
 
     #get_available_functions.__doc__
 
-    #TODO: not really working for ODEs.. not sure it works well in general...
     #TODO: change to multiple queries?
     # @tool(autosummarize=True)
     # async def skill_search(self, query: str, agent: AgentRef) -> None:
@@ -347,7 +305,7 @@ class MiraToolset:
     #     return query_functions(query)
 
 
-class MiraAgent(NewBaseAgent):
+class Agent(NewBaseAgent):
     """
     You are assisting us in performing important scientific tasks.
 
@@ -355,7 +313,7 @@ class MiraAgent(NewBaseAgent):
     """
 
     def __init__(self, context: BaseContext = None, tools: list = None, **kwargs):
-        tools = [MiraToolset]
+        tools = [Toolset]
         super().__init__(context, tools, **kwargs)
         with open('context.json', 'r') as f:
             self.context_conf = json.load(f)
@@ -363,17 +321,6 @@ class MiraAgent(NewBaseAgent):
         self.checked_code=False
         self.code_attempts=0
             
-# Here is an example of a code block to be submitted - 
-# ```
-# from mira.sources.biomodels import get_template_model
-# template_model = get_template_model('BIOMD0000000956')
-# ```  
-#to over-ride to make things happen before react loop (ie few shot dynamic examples..)
-   # async def react_async(self, query: str) -> str:
-   #     result = await super().react_async(query)
-   #     self.do_something()
-   #     return result
-   
     # @tool()
     # async def python_repl(self,code:str):
     #     """
@@ -422,7 +369,7 @@ class MiraAgent(NewBaseAgent):
     #         traceback_str = traceback.format_exc()
     #         sys.stderr.write(str(e))
     #         print_out='''End of Traceback.\n It seems like the code you attempted to run was unsuccessful. 
-    #         If you are having difficulty with a particular function(s) or class(es) look up their source code using the MiraToolset.get_functions_and_classes_source_code tool please'''
+    #         If you are having difficulty with a particular function(s) or class(es) look up their source code using the Toolset.get_functions_and_classes_source_code tool please'''
     #         self.checked_code=False
     #         self.code_attempts+=1
     #         if self.code_attempts>=2:
@@ -439,13 +386,13 @@ class MiraAgent(NewBaseAgent):
     #     #TODO: update variables in autocontext or nah?
     #     return f'Stdout:{std_out}\n\n Std_error with traceback : {traceback_str}\n{print_out}'#, print_out
   
-    # #If you try to use this tool before successful running the code in the MiraAgent.python_repl tool, you will receieve a response letting you know you must check your code.
+    # #If you try to use this tool before successful running the code in the Agent.python_repl tool, you will receieve a response letting you know you must check your code.
     # #If you attempted to run your code but it did not run successfully you will not be able to run this code.
     # @tool()
     # async def submit_code(self, code: str, agent: AgentRef, loop: LoopControllerRef) -> None:
     #     """
-    #     Use this after you have checked your code using the MiraAgent.python_repl tool and are ready to submit your code to the user.
-    #     If you try to use this tool before successful running the code in the MiraAgent.python_repl tool, you will receieve a response letting you know you must check your code.
+    #     Use this after you have checked your code using the Agent.python_repl tool and are ready to submit your code to the user.
+    #     If you try to use this tool before successful running the code in the Agent.python_repl tool, you will receieve a response letting you know you must check your code.
     #     If you attempted to run your code but it did not run successfully you will not be able to run this code.
         
     #     Ensure to handle any required dependencies, and provide a well-documented and efficient solution. Feel free to create helper functions or classes if needed.
@@ -453,7 +400,7 @@ class MiraAgent(NewBaseAgent):
     #     Please generate the code as if you were programming inside a Jupyter Notebook and the code is to be executed inside a cell.
     #     You MUST wrap the code with a line containing three backticks before and after the generated code like the code below but replace the 'triple_backticks':
     #     ```
-    #     import mira
+    #     import LIBRARY_NAME
     #     ```
 
     #     No additional text is needed in the response, just the code block with the triple backticks.
@@ -480,13 +427,13 @@ class MiraAgent(NewBaseAgent):
     #             self.code_attempts=0
     #             return 'You have already attempted to run code unsucessfully twice. Please let the user know the issues you are having and include your attempted code in your final_answer.'    
     #         else:
-    #             return 'You must check your code using the MiraAgent.python_repl tool before submitting code. Please ensure you have all function and class information necessary and then use the MiraAgent.python_repl tool.'
+    #             return 'You must check your code using the Agent.python_repl tool before submitting code. Please ensure you have all function and class information necessary and then use the Agent.python_repl tool.'
 
     
     #no_repl version
     @tool()
     async def submit_code(self, code: str, agent: AgentRef, loop: LoopControllerRef) -> None:
-        """
+        f"""
         Use this when you are ready to submit your code to the user.
         
         
@@ -495,7 +442,7 @@ class MiraAgent(NewBaseAgent):
         Please generate the code as if you were programming inside a Jupyter Notebook and the code is to be executed inside a cell.
         You MUST wrap the code with a line containing three backticks before and after the generated code like the code below but replace the 'triple_backticks':
         ```
-        import mira
+        import numpy
         ```
 
         No additional text is needed in the response, just the code block with the triple backticks.

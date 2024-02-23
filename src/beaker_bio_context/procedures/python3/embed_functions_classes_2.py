@@ -75,9 +75,9 @@ def process_directory(directory,max_lines=40,chunk_size=1500,library_name="mira"
 
 
         
-def embed_functions_and_classes(function_dir,collection_name="mira_function_index3",library_name="mira"):
+def embed_functions_and_classes(function_dir,collection_name="function_index",library_name="mira"):
     #get functions and classes from all .py files in dir
-    documents= process_directory(function_dir,library_name="mira")
+    documents= process_directory(function_dir,library_name=library_name)
     
     collection = start_chromadb(collection_name=collection_name)
     
@@ -116,7 +116,7 @@ def embed_functions_and_classes(function_dir,collection_name="mira_function_inde
     print('Embedded Docs')
         
 
-def query_functions_classes(query,collection_name="mira_function_index3",path="/bio_context/src/beaker_bio_context/chromabd_functions",n_results=5):
+def query_functions_classes(query,collection_name="function_index",path="/bio_context/chromadb_functions",n_results=5):
     collection = start_chromadb(collection_name=collection_name,path=path)
     result = collection.query(
         query_texts=[query],
