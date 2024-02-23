@@ -20,8 +20,7 @@ def embed_documents(documentation_dir,collection_name="documentation_index",top_
         #check if already there
         metadatas=collection.get()['metadatas']
         sources=[metadata['source'] for metadata in metadatas]
-        docs=[doc for doc in documents_to_add if doc[1] not in sources]
-        print(f'Length of new docs is {len(docs)}')    
+        docs=[doc for doc in documents_to_add if doc[1] not in sources] 
         
         #chunk documentation
         chunk_size=300
@@ -39,7 +38,6 @@ def embed_documents(documentation_dir,collection_name="documentation_index",top_
             metadatas=metadatas,
             ids=ids
         )
-        print('Embedded Docs')
 
 def query_docs(query,collection_name="documentation_index",path="/bio_context/chromadb_functions",n_results=5):
     collection = start_chromadb(collection_name=collection_name,path=path)

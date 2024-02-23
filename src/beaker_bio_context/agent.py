@@ -205,7 +205,6 @@ class Toolset:
         if type(list_of_function_or_class_names)==dict:
             list_of_function_or_class_names=list_of_function_or_class_names['list_of_function_or_class_names']
         help_string=''
-        print(list_of_function_or_class_names)
         for func_or_class_name in list_of_function_or_class_names:
             module_name=func_or_class_name.rsplit('.', 1)[0]
             importlib.import_module(module_name)

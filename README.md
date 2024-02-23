@@ -28,6 +28,7 @@ If you would like to use a new library with this context do the following to set
 
 First, add the desired libraries to the `dependencies` within `pyproject.toml`. 
 Then remove mira install command from the `Dockerfile` -  `RUN pip install git+https://github.com/indralab/mira.git`.
+Note, if your installation commands are more complicated you will need to modify the Dockerfile directly to run those commands.
 
 Then, in `context.json` make sure the library name (as it would be imported) is listed under the `library_names` key. 
 Add a high-level `task_description` that will be used for LLM prompting.

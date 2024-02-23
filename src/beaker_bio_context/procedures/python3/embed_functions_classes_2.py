@@ -84,8 +84,7 @@ def embed_functions_and_classes(function_dir,collection_name="function_index",li
     #check if already there
     metadatas=collection.get()['metadatas']
     functions_or_classes_names=[metadata['name'] for metadata in metadatas]
-    documents=[doc for doc in documents if doc[1]['name'] not in functions_or_classes_names]
-    print(f'Length of new docs is {len(documents)}')    
+    documents=[doc for doc in documents if doc[1]['name'] not in functions_or_classes_names]  
     
     #realign doc content for input into chroma
     document_texts=[doc[0] for doc in documents]
@@ -106,14 +105,12 @@ def embed_functions_and_classes(function_dir,collection_name="function_index",li
     metadatas = [metadatas[index] for index in unique_indexes]
     ids = [ids[index] for index in unique_indexes]
     
-    print(f'Length of new docs is {len(document_texts)}. Found {len(documents)-len(document_texts)} redundant functions/classes')
     # Add to ChromaDB collection
     collection.add(
         documents=document_texts,
         metadatas=metadatas,
         ids=ids
     )
-    print('Embedded Docs')
         
 
 def query_functions_classes(query,collection_name="function_index",path="/bio_context/chromadb_functions",n_results=5):
