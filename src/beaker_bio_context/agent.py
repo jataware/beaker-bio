@@ -33,10 +33,10 @@ from typing import Annotated,Union,List
 #TODO: convert MUST and ALWAYS to enforcable or directed flow
 #TODO: add knowledge of state of notebook to context keys - _ih, _oh (in and out full lists) (look at langchain version..)
 #TODO: add custom within react loop summarization.. save to variable then put in autocontext? Maybe a dialog where I ask the agent which of these is useful to save then only save those?
-#TODO: try docstring enforcement - ie they must put in the correct variables.. (think this is true now just the LIBRARY_NAME errors are more nefarious)
+#TODO: try docstring enforcement - ie they must put in the correct variables.. (think this is true now just the mira errors are more nefarious)
 #TODO: try using gpt 3.5 for some things..
 #TODO: rewrite files in easyTool format using gpt-3.5..
-#DONE: try examples from darpa-askem beaker LIBRARY_NAME examples..
+#DONE: try examples from darpa-askem beaker mira examples..
 
 #TODO: add list of state variables that were instantiated to few shot example search?
 
@@ -54,8 +54,8 @@ class Toolset:
         """
         Querying against the module or package should list all available submodules and functions that exist, so you can use this to discover available
         functions and the query the function to get usage information.
-        You should ALWAYS try to run this on specific submodules, not entire libraries. For example, instead of running this on `LIBRARY_NAME` you should
-        run this function on `SUBMODULE_EXAMPLE`. In fact, there should almost always be a `.` in the `package_name` argument.
+        You should ALWAYS try to run this on specific submodules, not entire libraries. For example, instead of running this on `mira` you should
+        run this function on `mira.modeling`. In fact, there should almost always be a `.` in the `package_name` argument.
         
         This function should be used to discover the available functions in the target library or module and get an object containing their docstrings so you can figure out how to use them.
 
@@ -68,7 +68,7 @@ class Toolset:
         Read the docstrings to learn how to use the functions and which arguments they take.
 
         Args:
-            package_name (str): this is the name of the package to get information about. For example "SUBMODULE_EXAMPLE"   
+            package_name (str): this is the name of the package to get information about. For example "mira.modeling"   
         """
         functions = {}
         code = agent.context.get_code("info", {"package_name": package_name})
@@ -92,11 +92,11 @@ class Toolset:
     # async def get_class_or_function_full_information(self,class_or_function_name:str):
     #     """ This tool will get function signatures and doc strings for all the classes and function names which are required to use the input class or function.
     #     For example if you had a class module.class1 which took as inputs either class2,class3 or class 4, This function would return information for class 1,2,3 and 4.
-    #     Input to this tool should be the class or function name with the complete module hierarchy ie. CLASS_EXAMPLE
-    #     Note that this can also be used on class methods like CLASS_METHOD_EXAMPLE to get more information on how to use them.
+    #     Input to this tool should be the class or function name with the complete module hierarchy ie. mira.modeling.triples.Triple
+    #     Note that this can also be used on class methods like mira.metamodel.template_model.TemplateModel.get_parameters_from_rate_law to get more information on how to use them.
         
     #     Args:
-    #         class_or_function_name (str): this is a string with the class or function name with full module hierarchy For example ["CLASS_EXAMPLE","FUNCTION_EXAMPLE"] 
+    #         class_or_function_name (str): this is a string with the class or function name with full module hierarchy For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"] 
     #     """
     #     def get_class_information(cls):
     #         function_information=[]
@@ -196,10 +196,10 @@ class Toolset:
         
         Read the information returned to learn how to use the function or class and which arguments they take.
         
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. CLASS_EXAMPLE
+        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
         
         Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["CLASS_EXAMPLE","FUNCTION_EXAMPLE"]   
+            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
         """
         #TODO: figure out cause of this and remove ugly filter
         if type(list_of_function_or_class_names)==dict:
@@ -225,10 +225,10 @@ class Toolset:
         
         Read the information returned to learn how to use the function or class and which arguments they take.
         
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. CLASS_EXAMPLE
+        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
         
         Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["CLASS_EXAMPLE","FUNCTION_EXAMPLE"]   
+            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
         """
         #TODO: figure out cause of this and remove ugly filter
         if type(list_of_function_or_class_names)==dict:
@@ -255,7 +255,7 @@ class Toolset:
         Response will be sections of the documentation that are relevant to your query.
         
         Args:
-            query (str): Natural language query. Some Examples - DOCUMENTATION_QUERY_EXAMPLES
+            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
         """
         from .procedures.python3.embed_documents import query_docs
         return query_docs(query)
@@ -263,12 +263,12 @@ class Toolset:
     @tool(autosummarize=True)
     async def search_functions_classes(self, query: str):
         """
-        Use this tool to search the code in the LIBRARY_NAME repo for function and classes relevant to your query.
+        Use this tool to search the code in the mira repo for function and classes relevant to your query.
         Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
         Response will be a string with the top few results, each result will have the function or class doc string and the source code (which includes the function signature)
         
         Args:
-            query (str): Natural language query. Some Examples - DOCUMENTATION_QUERY_EXAMPLES
+            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
         """
         from .procedures.python3.embed_functions_classes_2 import query_functions_classes
         return query_functions_classes(query)
@@ -399,7 +399,7 @@ class Agent(NewBaseAgent):
     #     Please generate the code as if you were programming inside a Jupyter Notebook and the code is to be executed inside a cell.
     #     You MUST wrap the code with a line containing three backticks before and after the generated code like the code below but replace the 'triple_backticks':
     #     ```
-    #     import LIBRARY_NAME
+    #     import mira
     #     ```
 
     #     No additional text is needed in the response, just the code block with the triple backticks.
@@ -432,24 +432,23 @@ class Agent(NewBaseAgent):
     #no_repl version
     @tool()
     async def submit_code(self, code: str, agent: AgentRef, loop: LoopControllerRef) -> None:
-        f"""
+        """
         Use this when you are ready to submit your code to the user.
         
         
         Ensure to handle any required dependencies, and provide a well-documented and efficient solution. Feel free to create helper functions or classes if needed.
         
         Please generate the code as if you were programming inside a Jupyter Notebook and the code is to be executed inside a cell.
-        You MUST wrap the code with a line containing three backticks before and after the generated code like the code below but replace the 'triple_backticks':
+        You MUST wrap the code with a line containing three backticks before and after the generated code like the code below but replace the "triple_backticks":
         ```
         import numpy
         ```
 
         No additional text is needed in the response, just the code block with the triple backticks.
-        
 
         Args:
             code (str): python code block to be submitted to the user inside triple backticks.
-        """
+        """        
         loop.set_state(loop.STOP_SUCCESS)
         preamble, code, coda = re.split("```\w*", code)
         result = json.dumps(

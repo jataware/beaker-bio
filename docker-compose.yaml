@@ -43,7 +43,7 @@ services:
     environment:
       - IS_PERSISTENT=TRUE
     volumes:
-      - /media/hdd/Code/beaker-bio/chromabd_functions:/chroma/chroma/
+      - ./chromadb_functions:/chroma/chroma/
     ports:
       - 8000:8000
     networks:

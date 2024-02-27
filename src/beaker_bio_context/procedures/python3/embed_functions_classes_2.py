@@ -84,6 +84,7 @@ def embed_functions_and_classes(function_dir,collection_name="function_index",li
     #check if already there
     metadatas=collection.get()['metadatas']
     functions_or_classes_names=[metadata['name'] for metadata in metadatas]
+    print(functions_or_classes_names)
     documents=[doc for doc in documents if doc[1]['name'] not in functions_or_classes_names]  
     
     #realign doc content for input into chroma
@@ -106,11 +107,14 @@ def embed_functions_and_classes(function_dir,collection_name="function_index",li
     ids = [ids[index] for index in unique_indexes]
     
     # Add to ChromaDB collection
-    collection.add(
+    try:
+        collection.add(
         documents=document_texts,
         metadatas=metadatas,
         ids=ids
-    )
+        )
+    except Exception as e:
+        print('unable to add to collection: {e}')
         
 
 def query_functions_classes(query,collection_name="function_index",path="/bio_context/chromadb_functions",n_results=5):
