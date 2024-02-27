@@ -21,7 +21,7 @@ docker-compose up --build
 On subsequent runs you can drop the build flag.
 I would recommend placing the export line to your .bashrc file.
 
-New examples can be added to `manual_examples.json`.
+New examples can be added to `mira_manual_examples.json`.
 
 > Once the `chromadb_functions` directory is created it can be zipped and used in `darpa-askem/beaker-kernel`.
 
