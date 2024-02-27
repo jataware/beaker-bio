@@ -18,8 +18,7 @@ def start_chromadb(docker=False,collection_name="examples",path="/bio_context/ch
 #TODO: change example format to the same as what the agent will see?
 #TODO: change examples to conversations?
 #TODO: change search to look for code similar to the code in the current notebook? (requires openai embeddings..)
-def add_examples(json_files:list=['_media_hdd_Code_beaker-bio_src_beaker_bio_context_code_extracted_code_examples.json',
-                                  'manual_examples.json']):
+def add_examples(json_files:list=['mira_manual_examples.json']):
     user_queries_or_descriptions=[]
     code_strings=[]
     metadatas=[]
