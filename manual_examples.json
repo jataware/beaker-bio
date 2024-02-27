@@ -1,0 +1,86 @@
+[
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```Code : ```from mira.metamodel import ControlledConversion, NaturalConversion, Concept, Template\n\n     infected = Concept(name='infected population', identifiers={'ido': '0000511'})\n     susceptible = Concept(name='susceptible population', identifiers={'ido': '0000514'})\n     immune = Concept(name='immune population', identifiers={'ido': '0000592'})\n\n     t1 = ControlledConversion(\n         controller=infected,\n         subject=susceptible,\n         outcome=infected,\n     )\n     t2 = NaturalConversion(subject=infected, outcome=immune)\n     Template.from_json(t1.dict())\n     from mira.metamodel import TemplateModel\n     sir_model = TemplateModel(templates=[t1, t2])```\n```",
+        "description": "Can you instantiate a SIR model using the metamodel template?"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```Code : ```from mira.metamodel import ControlledConversion, NaturalConversion, Concept, Template\nexposed = Concept(name='exposed population', identifiers={'genepio': '0001538'})\ndeceased = Concept(name='deceased population', identifiers={'ncit': 'C28554'})\ns1 = ControlledConversion(\n  controller=infected,\n  subject=susceptible,\n  outcome=exposed\n)\ns2 = NaturalConversion(\n  subject=exposed,\n  outcome=infected\n)\ns3 = NaturalConversion(\n  subject=infected,\n  outcome=deceased\n)\nM1 = TemplateModel(templates=[s1, s2, s3, t2])\nt2 = NaturalConversion(subject=infected, outcome=immune)\nu1 = ControlledConversion(\n  controller=exposed,\n  subject=susceptible,\n  outcome=exposed\n)\nM2 = TemplateModel(templates=M1.templates + [u1])\nunreported = Concept(name='immune unreported population', identifiers={'ido': '0000592'},\n                   context={'status': 'unreported'})\n\nv1 = NaturalConversion(\n  subject=exposed,\n  outcome=unreported\n)\nM3 = TemplateModel(templates=M2.templates + [v1])\nw1 = NaturalConversion(\n  subject=immune,\n  outcome=susceptible\n)\nM4 = TemplateModel(templates=M2.templates + [w1])\nTemplateModel.from_json(M4.dict())```\n       ```",
+        "description": "Create a more complicated SIRD style model using templates"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```Code : ```import numpy\nimport matplotlib.pyplot as plt\n\nfrom mira.metamodel import *\nfrom mira.modeling import Model\nfrom mira.modeling.ode import OdeModel, simulate_ode_model\ntemplate_model = TemplateModel(\ntemplates=[\n    NaturalConversion(\n        subject=Concept(name='infected'),\n        outcome=Concept(name='recovered')\n    ),\n    ControlledConversion(\n        subject=Concept(name='susceptible'),\n        outcome=Concept(name='infected'),\n        controller=Concept(name='infected')\n    )\n]\n)\nmodel = Model(template_model)\node_model = OdeModel(model)```",
+        "description": "Generate a sir model and then create an ode model from that model"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```Code : ```times = numpy.linspace(0, 25, 100)\n\nres = simulate_ode_model(\node_model=ode_model,\ninitials=numpy.array([0.01, 0, 0.99]),\nparameters={('infected', 'recovered', 'NaturalConversion', 'rate'): 0.5,\n            ('susceptible', 'infected', 'infected', 'ControlledConversion', 'rate'): 1.1},\ntimes=times\n)\ninfected, recovered, susceptible = plt.plot(times, res)\ninfected.set_color('blue')\nrecovered.set_color('orange')\nsusceptible.set_color('green')\nplt.show()```",
+        "description": "simulate my model ode_model using some default conditions then plot the results"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```Code : ```from mira.sources.biomodels import get_template_model\ntemplate_model = get_template_model('BIOMD0000000956')```",
+        "description": "Get template model \"BIOMD0000000956\""
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```Code : ```import requests\nsir_template_model_dict = sir_template_model.dict()\nrest_url = \"http://34.230.33.149:8771\"\nres = requests.post(rest_url + \"/api/stratify\", json={\"template_model\": sir_template_model_dict, \"key\": \"city\", \"strata\": [\"Boston\", \"New York City\"]})\nprint(res.json())```",
+        "description": "Stratify my sir template model by 2 different cities"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```Code : ```import requests\nfrom mira.metamodel import Concept, ControlledConversion, NaturalConversion, TemplateModel\n\n# Example TemplateModel\ninfected = Concept(name=\"infected population\", identifiers={\"ido\": \"0000511\"})\nsusceptible = Concept(name=\"susceptible population\", identifiers={\"ido\": \"0000514\"})\nimmune = Concept(name=\"immune population\", identifiers={\"ido\": \"0000592\"})\ncontrolled_conversion = ControlledConversion(\ncontroller=infected,\nsubject=susceptible,\noutcome=infected,\n)\nnatural_conversion = NaturalConversion(subject=infected, outcome=immune)\nsir_template_model = TemplateModel(templates=[controlled_conversion, natural_conversion])\nsir_template_model_dict = sir_template_model.dict()\nprint(sir_template_model.json())```",
+        "description": "Create a SIR model"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```from mira.metamodel import ControlledConversion, NaturalConversion,TemplateModel\n# SIR Model\ninfection = ControlledConversion(\nsubject=susceptible,\noutcome=infected,\ncontroller=infected,\n)\nrecovery = NaturalConversion(\nsubject=infected,\noutcome=recovered,\n)\nsir = TemplateModel(\ntemplates=[\n    infection,\n    recovery,\n],\n)```",
+        "description": "create an sir model for me"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```from mira.metamodel import ControlledConversion, NaturalConversion,TemplateModel,Parameter,Initial,safe_parse_expr\nimport sympy\nfrom copy import deepcopy as _d\nfrom mira.examples.concepts import susceptible, infected, recovered\nsir_parameterized = TemplateModel(\ntemplates=[\n    ControlledConversion(\n        subject=_d(susceptible),\n        outcome=_d(infected),\n        controller=_d(infected),\n        rate_law=safe_parse_expr(\n            'beta * susceptible_population * infected_population',\n            local_dict={'beta': sympy.Symbol('beta')}\n        )\n    ),\n    NaturalConversion(\n        subject=_d(infected),\n        outcome=_d(recovered),\n        rate_law=safe_parse_expr(\n            'gamma * infected_population',\n            local_dict={'gamma': sympy.Symbol('gamma')}\n        )\n    )\n],\nparameters={\n    'beta': Parameter(name='beta', value=0.1),\n    'gamma': Parameter(name='gamma', value=0.2)\n},\ninitials={\n    'susceptible_population': Initial(concept=_d(susceptible), expression=sympy.Integer('1')),\n    'infected_population': Initial(concept=_d(infected), expression=sympy.Integer('2')),\n    'immune_population': Initial(concept=_d(recovered), expression=sympy.Integer('3')),\n}\n)```",
+        "description": "create an sir model for me with parameters"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```from mira.metamodel import ControlledConversion, NaturalConversion,TemplateModel\nimport sympy\nfrom mira.examples.concepts import susceptible, infected, recovered\ncities = [\n\"geonames:5128581\",  # NYC\n\"geonames:4930956\",  # boston\n]\ninfection = ControlledConversion(\nsubject=susceptible,\noutcome=infected,\ncontroller=infected,\n)\nrecovery = NaturalConversion(\nsubject=infected,\noutcome=recovered,\n)\nsusceptible_nyc, susceptible_boston = (susceptible.with_context(city=city) for city in cities)\ninfected_nyc, infected_boston = (infected.with_context(city=city) for city in cities)\nrecovered_nyc, recovered_boston = (recovered.with_context(city=city) for city in cities)\ninfection_nyc, infection_boston = (infection.with_context(city=city) for city in cities)\nrecovery_nyc, recovery_boston = (recovery.with_context(city=city) for city in cities)\nsusceptible_nyc_to_boston = NaturalConversion(subject=susceptible_nyc, outcome=susceptible_boston)\nsusceptible_boston_to_nyc = NaturalConversion(subject=susceptible_boston, outcome=susceptible_nyc)\ninfected_nyc_to_boston = NaturalConversion(subject=infected_nyc, outcome=infected_boston)\ninfected_boston_to_nyc = NaturalConversion(subject=infected_boston, outcome=infected_nyc)\nrecovered_nyc_to_boston = NaturalConversion(subject=recovered_nyc, outcome=recovered_boston)\nrecovered_boston_to_nyc = NaturalConversion(subject=recovered_boston, outcome=recovered_nyc)\nsir_2_city = TemplateModel(\ntemplates=[\n    infection_nyc,\n    infection_boston,\n    recovery_nyc,\n    recovery_boston,\n    susceptible_nyc_to_boston,\n    susceptible_boston_to_nyc,\n    infected_nyc_to_boston,\n    infected_boston_to_nyc,\n    recovered_nyc_to_boston,\n    recovered_boston_to_nyc,\n],\n)```",
+        "description": "create an sir model for me with 2 strata, each for a different city, new york city and boston"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```from mira.metamodel import Concept, ControlledConversion, NaturalConversion, TemplateModel\ninfected = Concept(name='infected population', identifiers={'ido': '0000511'})\nsusceptible = Concept(name='susceptible population', identifiers={'ido': '0000514'}) \nrecovered = Concept(name='recovered population', identifiers={'ido': '0000592'}) \ninfection = ControlledConversion(subject=susceptible,outcome=infected,controller=infected)\nrecovery = NaturalConversion(subject=infected,outcome=recovered)     \nsir_model=TemplateModel(templates=[infection,recovery])\n\n# Output the model with parameters to inspect it\nfrom mira.metamodel import Parameter, safe_parse_expr\nimport sympy\n\n# Define parameters for the SIR model\nbeta = Parameter(name='beta', value=0.1)\ngamma = Parameter(name='gamma', value=0.2)\n\n# Update the transitions with rate laws using symbolic expressions\ninfection.rate_law = safe_parse_expr('beta * susceptible_population * infected_population', local_dict={'beta': sympy.Symbol('beta')})\nrecovery.rate_law = safe_parse_expr('gamma * infected_population', local_dict={'gamma': sympy.Symbol('gamma')})\n\n# Add parameters to the model\nsir_model.parameters = {'beta': beta, 'gamma': gamma}\nfrom mira.modeling import Model\nfrom mira.modeling.ode import OdeModel\n\n# Assuming sir_model is already defined and correctly instantiated with parameters\n\n# Convert the TemplateModel to a Model\nsir_model_converted = Model(sir_model)\n\n# Create an ODE model from the converted model, setting initialized to True\node_model = OdeModel(sir_model_converted, initialized=True)```",
+        "description": "Create an sir model for me then convert it to an ODE model"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mira_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```# Assuming 'sir_model' and 'seirdh_model' are already defined in the user's environment\n# and are instances of TemplateModel.\n\nfrom mira.metamodel import get_dkg_refinement_closure\nrc = get_dkg_refinement_closure()\n\n# Compare the models\nmodel_comparison = TemplateModelComparison([sir_model, seirdh_model], refinement_func=rc.is_ontological_child)\n\n# Visualize the comparison\n# This will generate a graph which we can then display\n\ntm = model_comparison.template_models\nTemplateModelDelta.for_jupyter(tm[0], tm[1], rc.is_ontological_child, args=\"-Grankdir=TB\")```",
+        "description": "Structural comparison of two or more models with visualization"
+    }
+]

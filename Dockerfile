@@ -19,7 +19,7 @@ RUN pip install hatch
 
 RUN useradd -m jupyter
 USER jupyter
-RUN pip install .
+RUN pip install -e .
 RUN pip install git+https://github.com/indralab/mira.git
 
 WORKDIR /jupyter

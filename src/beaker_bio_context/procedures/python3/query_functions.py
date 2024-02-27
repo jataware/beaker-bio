@@ -1,6 +1,22 @@
 import chromadb
+import os
+import openai
 
-def query_functions(query, n_results=5):
+def start_chromadb(docker=False):
+    import chromadb
+    if docker:
+        #Initialize ChromaDB client and create a collection
+        client = chromadb.HttpClient(host='localhost', port=8000)
+    else:
+        #chroma_client = chromadb.PersistentClient(path="./chromabd_functions")
+        chroma_client = chromadb.PersistentClient(path="/bio_context/chromadb_functions")
+    
+    collection = chroma_client.get_or_create_collection(name="full")
+    
+    openai.api_key = os.environ['OPENAI_API_KEY']
+    return collection
+
+def query_functions(query, n_results=10):
     '''
     Takes in a query and returns the top n results in the following form:
 
@@ -11,8 +27,7 @@ def query_functions(query, n_results=5):
     ...
     }
     '''
-    client = chromadb.HttpClient(host='chromadb', port=8000)
-    collection = client.get_collection("python_functions")
+    collection=start_chromadb(docker=False)
     result = collection.query(
         query_texts=[query],
         n_results=n_results
@@ -27,4 +42,4 @@ def query_functions(query, n_results=5):
 
     return cleaned_results
 
-query_functions("{{query}}")
+#query_functions("{{query}}")
