@@ -355,7 +355,7 @@ Please answer any user queries or perform user instructions to the best of your 
                 code,
                 parent_header={},
             )
-            docs = response["return"]["documentation"]
+            docs = response["return"]
             documentation[package] = docs
         print(f"Fetched help for {documentation.keys()}")
         return documentation

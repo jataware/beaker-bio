@@ -1,21 +1,19 @@
-import JSON3
+import JSON3, DisplayAs
 IGNORED_SYMBOLS = [:Base, :Core, :InteractiveUtils, :Main]
 
 file = open("/tmp/state.json", "w")
 
-state = Dict{Symbol, Any}(
+_state = Dict{Symbol, Any}(
     :user_vars => Dict{Symbol, String},
     :imported_modules => Symbol[]
 )
-_var_names = names(Main)
+_var_names = filter(x -> in(x, IGNORED_SYMBOLS), names(Main))
 for var in _var_names
     value = eval(var)
-    if in(var, IGNORED_SYMBOLS)
-        continue
-    elseif isa(value, Module)
-        push!(state[:imported_modules], var)
+    if isa(value, Module)
+        push!(_state[:imported_modules], var)
     else
-        state[:user_vars][var] = string(value)
+        _state[:user_vars][var] = string(value)
     end
 end
-write(file, JSON3.write(state))
+_state |> DisplayAs.unlimited ∘ JSON3.write

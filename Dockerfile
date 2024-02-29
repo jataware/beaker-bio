@@ -1,4 +1,4 @@
-FROM localhost:5000/askem-julia:mimi AS JULIA_BASE_IMAGE
+FROM askem-julia:mimi AS JULIA_BASE_IMAGE
 
 FROM python:3.10
 

@@ -3,7 +3,7 @@
     "package": "beaker_bio_context.context",
     "class_name": "Context",
     "library_names": [
-        "Mimi"
+        "Mimi", "MimiBRICK", "MimiFUND"
     ],
     "library_descriptions": [
         "Mimi is a Julia package for integrated assessment models developed in connection with Resources for the Future's Social Cost of Carbon Initiative."
