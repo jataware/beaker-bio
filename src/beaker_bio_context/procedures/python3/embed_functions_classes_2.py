@@ -96,10 +96,10 @@ def embed_functions_and_classes(function_dir,collection_name="function_index",li
     seen = {}
     unique_indexes = []
 
-    for index, value in enumerate(ids):
-        if value not in seen:
-            seen[value] = index
-            unique_indexes.append(index)
+    # for index, value in enumerate(ids):
+    #     if value not in seen:
+    #         seen[value] = index
+    #         unique_indexes.append(index)
             
     #filter out redundant
     document_texts = [document_texts[index] for index in unique_indexes]

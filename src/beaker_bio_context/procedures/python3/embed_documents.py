@@ -10,22 +10,23 @@ def embed_documents(documentation_dir,collection_name="documentation_index",top_
         collection = start_chromadb(collection_name=collection_name)
         #get docs
         documents=glob.glob(documentation_dir+'/**',recursive=True)
-        documents_to_add=[]
-        for file_path in documents:
-            if '.rst' in file_path or '.md' in file_path:
-                with open(file_path, 'r') as file:
-                    file_content = file.read()
-                documents_to_add.append((file_content,{'source':file_path}))
+        documents_to_add=[["text",{"source": "1", "chunk_number": "1"}]]
+        # documents_to_add=[]
+        # for file_path in documents:
+        #     if '.rst' in file_path or '.md' in file_path:
+        #         with open(file_path, 'r') as file:
+        #             file_content = file.read()
+        #         documents_to_add.append((file_content,{'source':file_path}))
         
-        #check if already there
-        metadatas=collection.get()['metadatas']
-        sources=[metadata['source'] for metadata in metadatas]
-        docs=[doc for doc in documents_to_add if doc[1] not in sources] 
+        # #check if already there
+        # metadatas=collection.get()['metadatas']
+        # sources=[metadata['source'] for metadata in metadatas]
+        # docs=[doc for doc in documents_to_add if doc[1] not in sources] 
         
-        #chunk documentation
-        chunk_size=300
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size = chunk_size, chunk_overlap = 0,length_function=count_words,separators=["\n\n", "\n", " "])
-        documents_to_add = text_splitter.split_documents(documents_to_add)
+        # #chunk documentation
+        # chunk_size=300
+        # text_splitter = RecursiveCharacterTextSplitter(chunk_size = chunk_size, chunk_overlap = 0,length_function=count_words,separators=["\n\n", "\n", " "])
+        # documents_to_add = text_splitter.split_documents(documents_to_add)
         
         #realign doc content for input into chroma
         document_texts=[doc[0] for doc in documents_to_add]

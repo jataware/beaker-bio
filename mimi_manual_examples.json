@@ -1,0 +1,30 @@
+[
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mimi_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```using MimiDICE2010\nm = MimiDICE2010.get_model()\nrun(m)\n```",
+        "description": "Can you run the DICE Model?"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mimi_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```import Pkg; Pkg.add(MimiDICE2010)```",
+        "description": "Can you install BRICK?"
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mimi_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```co2_emissions = m[:co2_cycle, :E_co2]```",
+        "description": "Access a specific variable's data in tabular format."
+    },
+    {
+        "origination_source_type": "code_file",
+        "origination_source": "mimi_library",
+        "origination_method": "extract_from_library_manual",
+        "code": "```co2_emissions = getdataframe(m, :co2_cycle, :E_co2)```",
+        "description": "Access a specific variable's data in a Dataframe."
+    }
+]

@@ -54,8 +54,7 @@ class Toolset:
         """
         Querying against the module or package should list all available submodules and functions that exist, so you can use this to discover available
         functions and the query the function to get usage information.
-        You should ALWAYS try to run this on specific submodules, not entire libraries. For example, instead of running this on `mira` you should
-        run this function on `mira.modeling`. In fact, there should almost always be a `.` in the `package_name` argument.
+        You should ALWAYS try to run this on specific submodules, not entire libraries.
         
         This function should be used to discover the available functions in the target library or module and get an object containing their docstrings so you can figure out how to use them.
 
@@ -68,7 +67,7 @@ class Toolset:
         Read the docstrings to learn how to use the functions and which arguments they take.
 
         Args:
-            package_name (str): this is the name of the package to get information about. For example "mira.modeling"   
+            package_name (str): this is the name of the package to get information about.
         """
         functions = {}
         code = agent.context.get_code("info", {"package_name": package_name})
@@ -191,15 +190,15 @@ class Toolset:
     @tool(autosummarize=True)
     async def get_functions_and_classes_docstring(self, list_of_function_or_class_names: list, agent: AgentRef):
         """
-        Use this tool to additional information on individual function or class such as their inputs, outputs and description (and generally anything else that would be in a docstring)
-        You should ALWAYS use this tool before writing or checking code to check the function signatures of the functions or classes you are about to use.
+        Use this tool to additional information on individual function such as their inputs, outputs and description (and generally anything else that would be in a docstring)
+        You should ALWAYS use this tool before writing or checking code to check the function signatures of the functions you are about to use.
         
-        Read the information returned to learn how to use the function or class and which arguments they take.
+        Read the information returned to learn how to use the function and which arguments they take.
         
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
+        The function names used in the input to this tool should include the entire module hierarchy
         
         Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
+            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. 
         """
         #TODO: figure out cause of this and remove ugly filter
         if type(list_of_function_or_class_names)==dict:
@@ -225,10 +224,10 @@ class Toolset:
         
         Read the information returned to learn how to use the function or class and which arguments they take.
         
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
+        The function and class names used in the input to this tool should include the entire module hierarchy
         
         Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
+            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about.
         """
         #TODO: figure out cause of this and remove ugly filter
         if type(list_of_function_or_class_names)==dict:
@@ -263,7 +262,7 @@ class Toolset:
     @tool(autosummarize=True)
     async def search_functions_classes(self, query: str):
         """
-        Use this tool to search the code in the mira repo for function and classes relevant to your query.
+        Use this tool to search the code in the Mimi repo for function and classes relevant to your query.
         Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
         Response will be a string with the top few results, each result will have the function or class doc string and the source code (which includes the function signature)
         
@@ -447,14 +446,14 @@ class Agent(NewBaseAgent):
         No additional text is needed in the response, just the code block with the triple backticks.
 
         Args:
-            code (str): python code block to be submitted to the user inside triple backticks.
+            code (str): code block to be submitted to the user inside triple backticks.
         """        
         loop.set_state(loop.STOP_SUCCESS)
         preamble, code, coda = re.split("```\w*", code)
         result = json.dumps(
             {
                 "action": "code_cell",
-                "language": "python3",
+                "language": self.context.subkernel.KERNEL_NAME,
                 "content": code.strip(),
             }
         )

@@ -1,1 +1,0 @@
-http://purl.obolibrary.org/obo/COVOC_0010003

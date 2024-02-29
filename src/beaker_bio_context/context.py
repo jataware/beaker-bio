@@ -4,7 +4,7 @@ from importlib import import_module
 import io
 import json
 from typing import TYPE_CHECKING, Any, Dict
-import pickle
+import pandas as pd
 import os
 
 from beaker_kernel.lib.context import BaseContext
@@ -31,10 +31,8 @@ class Context(BaseContext):
     ) -> None:
         with open('context.json','r') as f:
             self.context_conf = json.loads(f.read())
-        if not isinstance(subkernel, PythonSubkernel):
-            raise ValueError("This context is only valid for Python.")
         self.library_name=self.context_conf.get("library_names","a Jupyter notebook")[0]
-        self.sub_module_description=self.context_conf.get('library_submodule_descriptions', '')[0]
+        self.sub_module_description=[]#self.context_conf.get('library_submodule_descriptions', '')
         self.functions = {}
         self.config = config
         self.variables={}
@@ -55,9 +53,10 @@ class Context(BaseContext):
         )
         jupyter_context={'user_vars':{},'imported_modules':[]}
         try:
-            jupyter_context=pickle.load(open('/tmp/jupyter_state.pkl', 'rb'))
+            with open('/tmp/state.json', "rb") as file:
+                jupyter_context=json.load(file)
         except:
-            logger.error('failed to load jupyter_state.pkl')
+            logger.error('failed to load state.jsonv')
 
         variables=jupyter_context['user_vars']
         imported_modules=jupyter_context['imported_modules']
@@ -86,7 +85,7 @@ class Context(BaseContext):
                     })
         
         intro = f"""
-You are python software engineer whose goal is to help with {self.context_conf.get('task_description', 'doing things')} in {self.library_name}.
+You are {self.subkernel.KERNEL_NAME} software engineer whose goal is to help with {self.context_conf.get('task_description', 'doing things')} in {self.library_name}.
 You should ALWAYS think about which functions and classes from {self.library_name} you are going to use before you write code.
 You MUST have the function signature and docstring handy before using a function. 
 If the functions you want to use are in the context below, no need to look them up again.
@@ -94,9 +93,9 @@ Otherwise, either lookup the available functions from Toolset.get_available_func
 search for relevant functions and classes using Toolset.skill_search 
 or if you know the particular functions and classes you want to get more information on, use Toolset.get_functions_and_classes_docstring
 
-Before you submit the code you have written to the user, you should use your python_repl tool to make sure that the generated code is correct.
+Before you submit the code you have written to the user, you should use your ${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
 If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your python_repl tool, use the submit_code tool to submit the code to the user's code environment. 
+Once you have checked your code and ensure it is correct using your ${self.subkernel.KERNEL_NAME}_repl tool, use the submit_code tool to submit the code to the user's code environment. 
 
 Below is a dictionary of library help information where the library name is the key
 and the help documentation the value:
@@ -121,9 +120,9 @@ Otherwise, either lookup the available functions from Toolset.get_available_func
 search for relevant functions and classes using Toolset.search_functions_classes 
 or if you know the particular functions and classes you want to get more information on, use Toolset.get_functions_and_classes_docstring
 
-Before you submit the code you have written to the user, you should use your Agent.python_repl tool to make sure that the generated code is correct.
+Before you submit the code you have written to the user, you should use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
 If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.python_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
+Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
 
 Below is some information on the submodules in {self.library_name}:
 
@@ -144,9 +143,9 @@ Otherwise, first use the Toolset.search_functions_classes  to search for relevan
 If that does not provide enough information, lookup the available functions for related modules using Toolset.get_available_functions, 
 or if you know the particular functions and classes you want to get more information on, use Toolset.get_functions_and_classes_docstring
 
-Before you submit the code you have written to the user, you should use your Agent.python_repl tool to make sure that the generated code is correct.
+Before you submit the code you have written to the user, you should use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
 If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.python_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
+Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
 
 Below is some information on the submodules in {self.library_name}:
 
@@ -169,9 +168,9 @@ If that does not provide enough information, lookup the available functions for 
 
 You MUST lookup the source code for each of the functions that you intend to use using the Toolset.get_functions_and_classes_source_code before using a function from {self.library_name}.
 
-Before you submit the code you have written to the user, you MUST use your Agent.python_repl tool to make sure that the generated code is correct.
+Before you submit the code you have written to the user, you MUST use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
 If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.python_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
+Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
 
 Below is some information on the submodules in {self.library_name}:
 
@@ -195,9 +194,9 @@ If that does not provide enough information, lookup the available functions for 
 You MUST lookup the information for each of the functions that you intend to use using the Toolset.get_functions_and_classes_docstring before using a function from {self.library_name}.
 If there are  {self.library_name} specific input objects/classes be sure to look them up as well before using them as inputs.
 
-Before you submit the code you have written to the user, you MUST use your Agent.python_repl tool to make sure that the generated code is correct.
+Before you submit the code you have written to the user, you MUST use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
 If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.python_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
+Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
 
 Below is some information on the submodules in {self.library_name}:
 
@@ -283,9 +282,9 @@ If that does not provide enough information, use the Toolset.search_functions_cl
 
 You can lookup source code for individual functions or classes using the Toolset.get_functions_and_classes_source_code before using a function from {self.library_name}.
 
-Before you submit the code you have written to the user, you MUST use your Agent.python_repl tool to make sure that the generated code is correct.
+Before you submit the code you have written to the user, you MUST use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
 If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.python_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
+Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
 
 Below is some information on the submodules in {self.library_name}:
 
@@ -350,13 +349,13 @@ Please answer any user queries or perform user instructions to the best of your 
         """
         documentation = {}
         for package in self.context_conf.get('library_names', []):
-            module = import_module(package)
 
-            # Redirect the standard output to capture the help text
-            with io.StringIO() as buf, contextlib.redirect_stdout(buf):
-                help(module)
-                # Store the help text in the dictionary
-                documentation[package] = buf.getvalue()
+            code = self.agent.context.get_code("get_module_docs", {"module": package})
+            response = await self.agent.context.beaker_kernel.evaluate(
+                code,
+                parent_header={},
+            )
+            docs = response["return"]["documentation"]
+            documentation[package] = docs
         print(f"Fetched help for {documentation.keys()}")
         return documentation
-    

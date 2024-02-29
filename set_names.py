@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-def update_agent_doc_strings(library_name="mira",submodule_example="mira.modeling",
-                             class_example="mira.modeling.triples.Triple",
-                             class_method_example="mira.metamodel.template_model.TemplateModel.get_parameters_from_rate_law",
-                             function_example="mira.metamodel.io.model_from_json_file",
-                             documentation_query_examples='"ode model", "sir model", "using dkg package"',
+def update_agent_doc_strings(library_name="Mimi",submodule_example="",
+                             class_example="",
+                             class_method_example="",
+                             function_example="",
+                             documentation_query_examples='""',
                              ):
     """
     Replace keywords in a agent docstrings to encourage proper library usage.
