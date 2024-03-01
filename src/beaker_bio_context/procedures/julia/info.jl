@@ -15,7 +15,7 @@ _function_names =
             else
                 _selected_module
             end
-        filter(in(_modules_names), reduce(vcat, [names(mod) for mod in _module_names]))
+        filter(!in(_modules_names), reduce(vcat, [names(mod) for mod in _module_names]))
     else
         split(_chosen_func_str, ",")
     end

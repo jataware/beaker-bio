@@ -8,8 +8,6 @@ import pandas as pd
 import os
 
 from beaker_kernel.lib.context import BaseContext
-from beaker_kernel.lib.subkernels.python import PythonSubkernel
-import pkgutil
 from .agent import Agent
 
 if TYPE_CHECKING:
@@ -31,48 +29,50 @@ class Context(BaseContext):
     ) -> None:
         with open('context.json','r') as f:
             self.context_conf = json.loads(f.read())
-        self.library_name=self.context_conf.get("library_names","a Jupyter notebook")[0]
+        self.library_name="Mimi.jl"
         self.sub_module_description=[]#self.context_conf.get('library_submodule_descriptions', '')
         self.functions = {}
         self.config = config
         self.variables={}
         self.imported_modules={}
+        self.available_modules={}
         self.few_shot_examples=''
         self.code_blocks=[] #{'code':str,'execution_status':not_executed,executed_successfully,'execution_order':int,'output':output from running code block most recent time.}
         self.code_block_print='\n\n'.join([f'Code Block[{i}]: {self.code_blocks[i]["code"]}\nExecution Status:{self.code_blocks[i]["execution_status"]}\nExecution Order:{self.code_blocks[i]["execution_order"]}\nCode Block Output or Error:{self.code_blocks[i]["output"]}' for i in range(len(self.code_blocks))])
-    
         super().__init__(beaker_kernel, subkernel, self.agent_cls, config)
         
     async def get_jupyter_context(self):
         imported_modules=[]
         variables={}
         code = self.agent.context.get_code("get_jupyter_variables")
-        await self.agent.context.beaker_kernel.evaluate(
+        response = await self.agent.context.beaker_kernel.evaluate(
             code,
             parent_header={},
         )
-        jupyter_context={'user_vars':{},'imported_modules':[]}
-        try:
-            with open('/tmp/state.json', "rb") as file:
-                jupyter_context=json.load(file)
-        except:
-            logger.error('failed to load state.jsonv')
+        jupyter_context=response["return"]
+        logger.error(jupyter_context)
 
         variables=jupyter_context['user_vars']
         imported_modules=jupyter_context['imported_modules']
-        return variables,imported_modules
+        available_modules=jupyter_context['available_modules']
+
+        return variables, imported_modules, available_modules
     
     async def post_execute(self, message):
-        self.variables,self.imported_modules=await self.get_jupyter_context()
+        self.variables,self.imported_modules, self.available_modules=await self.get_jupyter_context()
         self.agent.debug(event_type="update_code_env",content={
                     "variables": self.variables,
                 })
         self.agent.debug(event_type="code",content={
                     "imported_modules": self.imported_modules,
                 })
+        self.agent.debug(event_type="code",content={
+                    "available_modules": self.available_modules,
+                })
     
     async def auto_context(self):
-        from .procedures.python3.dynamic_example_selector import query_examples 
+        from .lib.dynamic_example_selector import query_examples
+        await self.get_jupyter_context()
         most_recent_user_query=''
         for message in self.agent.messages:
             if message['role']=='user':
@@ -92,10 +92,6 @@ If the functions you want to use are in the context below, no need to look them 
 Otherwise, either lookup the available functions from Toolset.get_available_functions, 
 search for relevant functions and classes using Toolset.skill_search 
 or if you know the particular functions and classes you want to get more information on, use Toolset.get_functions_and_classes_docstring
-
-Before you submit the code you have written to the user, you should use your ${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
-If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your ${self.subkernel.KERNEL_NAME}_repl tool, use the submit_code tool to submit the code to the user's code environment. 
 
 Below is a dictionary of library help information where the library name is the key
 and the help documentation the value:
@@ -120,10 +116,6 @@ Otherwise, either lookup the available functions from Toolset.get_available_func
 search for relevant functions and classes using Toolset.search_functions_classes 
 or if you know the particular functions and classes you want to get more information on, use Toolset.get_functions_and_classes_docstring
 
-Before you submit the code you have written to the user, you should use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
-If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
-
 Below is some information on the submodules in {self.library_name}:
 
 {self.sub_module_description}
@@ -142,10 +134,6 @@ If the functions you want to use are in the context below, no need to look them 
 Otherwise, first use the Toolset.search_functions_classes  to search for relevant functions and classes.
 If that does not provide enough information, lookup the available functions for related modules using Toolset.get_available_functions, 
 or if you know the particular functions and classes you want to get more information on, use Toolset.get_functions_and_classes_docstring
-
-Before you submit the code you have written to the user, you should use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
-If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
 
 Below is some information on the submodules in {self.library_name}:
 
@@ -168,10 +156,6 @@ If that does not provide enough information, lookup the available functions for 
 
 You MUST lookup the source code for each of the functions that you intend to use using the Toolset.get_functions_and_classes_source_code before using a function from {self.library_name}.
 
-Before you submit the code you have written to the user, you MUST use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
-If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
-
 Below is some information on the submodules in {self.library_name}:
 
 {self.sub_module_description}
@@ -193,10 +177,6 @@ If that does not provide enough information, lookup the available functions for 
 
 You MUST lookup the information for each of the functions that you intend to use using the Toolset.get_functions_and_classes_docstring before using a function from {self.library_name}.
 If there are  {self.library_name} specific input objects/classes be sure to look them up as well before using them as inputs.
-
-Before you submit the code you have written to the user, you MUST use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
-If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
 
 Below is some information on the submodules in {self.library_name}:
 
@@ -282,10 +262,6 @@ If that does not provide enough information, use the Toolset.search_functions_cl
 
 You can lookup source code for individual functions or classes using the Toolset.get_functions_and_classes_source_code before using a function from {self.library_name}.
 
-Before you submit the code you have written to the user, you MUST use your Agent.${self.subkernel.KERNEL_NAME}_repl tool to make sure that the generated code is correct.
-If any functions that you want to use in your code require additional arguments, please ask the user to provide these and do not guess at their values.
-Once you have checked your code and ensure it is correct using your Agent.${self.subkernel.KERNEL_NAME}_repl tool, use the Agent.submit_code tool to submit the code to the user's code environment. 
-
 Below is some information on the submodules in {self.library_name}:
 
 {self.sub_module_description}
@@ -299,7 +275,9 @@ If the request from the user is similar enough to one of these examples, use it 
         code_environment=f"""These are the variables in the user's current code environment with key value pairs:
 {self.variables}
 
-The user has also imported the following modules: {','.join(self.imported_modules)}. So you don't need to import them when generating code.
+The user has also imported the following modules: {','.join(self.imported_modules)}.
+The following models have NOT been imported but are available: {','.join(self.imported_modules)}.
+So you don't need to import them when generating code.
 When writing code that edits the variables that the user has in their environment be sure to modify them in place. 
 For example if we have a variable a=1, if we wanted to change a to 2, we you write a=2.
 When the user asks you to perform an action, if they specifically mention a variable name, be sure to use that variable.
@@ -312,7 +290,9 @@ Here are the functions that you have looked up the docstrings of using the Tools
         code_environment2=f"""These are the variables in the user's current code environment with key value pairs:
 {self.variables}
 
-The user has also imported the following modules: {','.join(self.imported_modules)}. So you don't need to import them when generating code.
+The user has also imported the following modules: {','.join(self.imported_modules)}.
+The following models have NOT been imported but are available: {','.join(self.imported_modules)}.
+So you don't need to import them when generating code.
 When writing code that edits the variables that the user has in their environment be sure to modify them in place. 
 For example if we have a variable a=1, if we wanted to change a to 2, we you write a=2.
 When the user asks you to perform an action, if they specifically mention a variable name, be sure to use that variable.
@@ -322,7 +302,9 @@ Additionally if the object they ask you to update is similar to an object in the
         code_environment_notebook_rep=f"""These are the variables in the user's current code environment with key value pairs:
 {self.variables}
 
-The user has also imported the following modules: {','.join(self.imported_modules)}. So you don't need to import them when generating code.
+The user has also imported the following modules: {','.join(self.imported_modules)}.
+The following models have NOT been imported but are available: {','.join(self.imported_modules)}.
+So you don't need to import them when generating code.
 When writing code that edits the variables that the user has in their environment be sure to modify them in place. 
 For example if we have a variable a=1, if we wanted to change a to 2, we you write a=2.
 

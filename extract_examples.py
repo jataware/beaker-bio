@@ -3,7 +3,7 @@
 #TODO: maybe just get whole chain or file of examples and append to the description to be sure??
 #TODO: improve llm file filtering
 #TODO: add compilation check?
-from src.beaker_bio_context.procedures.python3.embed_docs import *
+from beaker_bio_context.lib.embed_docs import *
 from nbconvert import PythonExporter
 
 def get_examples_from_code_doc_file(file_path,notebook=False,doc_file=False,library_name=''):

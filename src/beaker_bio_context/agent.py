@@ -10,9 +10,7 @@ from archytas.tool_utils import AgentRef, LoopControllerRef, is_tool, tool, tool
 
 from beaker_kernel.lib.agent import BaseAgent
 from beaker_kernel.lib.context import BaseContext
-from .CodeLATS.code_lats import use_lats
 logger = logging.getLogger(__name__)
-from archytas.tools import PythonTool
 from .new_base_agent import NewBaseAgent
 import importlib
 import io
@@ -50,9 +48,6 @@ class Toolset:
         """
         functions = {}
 
-        
-        documentation = {}
-
         code = self.agent.context.get_code("info", {"module": package_name})
         response = await self.agent.context.beaker_kernel.evaluate(
             code,
@@ -61,9 +56,13 @@ class Toolset:
         functions = response["return"]
         print(f"Fetched func info")
         agent.context.functions.update(functions)
-        return functions            
-    
-    
+        help_string=''
+        for name, help_text in functions.items():
+            help_string+=f'{name}: {help_text}'
+            agent.context.functions[name]=help_text
+        return help_string
+
+
     @tool(autosummarize=True)
     async def get_functions_docstring(self, list_of_function_names: list, agent: AgentRef):
         """
@@ -131,7 +130,7 @@ class Toolset:
         Args:
             query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
         """
-        from .procedures.python3.embed_documents import query_docs
+        from .lib.embed_documents import query_docs
         return query_docs(query)
     
     @tool(autosummarize=True)
@@ -144,7 +143,7 @@ class Toolset:
         Args:
             query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
         """
-        from .procedures.python3.embed_functions_classes_2 import query_functions_classes
+        from .lib.embed_functions_classes_2 import query_functions_classes
         return query_functions_classes(query)
 
 
@@ -183,8 +182,8 @@ class Agent(NewBaseAgent):
         No additional text is needed in the response, just the code block with the triple backticks.
 
         Args:
-            code (str): code block to be submitted to the user inside triple backticks.
-        """        
+            code (str): Julia code block to be submitted to the user inside triple backticks.
+        """
         loop.set_state(loop.STOP_SUCCESS)
         preamble, code, coda = re.split("```\w*", code)
         result = json.dumps(

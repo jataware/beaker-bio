@@ -20,5 +20,5 @@
     ],
     "documentation_query_examples": [
     ],
-    "task_description": "Modeling"
+    "task_description": "Handling Integrated Assessment Models (IAM) using Mimi.jl and libraries that build IAMs with Mimi.jl"
 }
