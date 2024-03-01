@@ -6,8 +6,8 @@ _state = Dict(
     :imported_modules => [],
     :available_modules => Symbol.(keys(Pkg.project().dependencies))
 )
-is_hidden(x) = string(x)[1] == '_'
-_var_names = filter(x -> !(in(x, IGNORED_SYMBOLS) || is_hidden(x)), names(Main))
+_is_hidden(x) = string(x)[1] == '_'
+_var_names = filter(x -> !(in(x, IGNORED_SYMBOLS) || _is_hidden(x)), names(Main))
 for var in _var_names
     value = eval(var)
     if isa(value, Module)
