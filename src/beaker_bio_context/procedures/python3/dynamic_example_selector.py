@@ -45,9 +45,9 @@ def add_examples(json_files:list=['mira_manual_examples.json']):
         ids=[str(i) for i in range(len(code_strings))] #make more descriptive?
     )
     
-def query_examples(query, n_results=5):
-    u_query_collection=start_chromadb(collection_name="user_queries")
-    examples_collection=start_chromadb(collection_name="examples")
+def query_examples(query, path="/bio_context/chromadb_functions",n_results=5):
+    u_query_collection=start_chromadb(collection_name="user_queries",path=path)
+    examples_collection=start_chromadb(collection_name="examples",path=path)
     results=u_query_collection.query(query_texts=[query],
                     n_results=n_results)
     examples_ids=results['ids'][0] 

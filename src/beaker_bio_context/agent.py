@@ -314,8 +314,6 @@ class Agent(NewBaseAgent):
     def __init__(self, context: BaseContext = None, tools: list = None, **kwargs):
         tools = [Toolset]
         super().__init__(context, tools, **kwargs)
-        with open('context.json', 'r') as f:
-            self.context_conf = json.load(f)
         self.most_recent_user_query=''
         self.checked_code=False
         self.code_attempts=0

@@ -84,6 +84,7 @@ class Context(BaseContext):
                         "few_shot_examples": self.few_shot_examples,
                         "user_query":most_recent_user_query
                     })
+            self.agent.most_recent_user_query = most_recent_user_query
         
         intro = f"""
 You are python software engineer whose goal is to help with {self.context_conf.get('task_description', 'doing things')} in {self.library_name}.
