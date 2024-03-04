@@ -16,6 +16,6 @@ from src.beaker_bio_context.procedures.python3.dynamic_example_selector import a
 add_examples()
 
 #Now set the name of the library using  - 
-from set_names import update_agent_doc_strings
+from setup_context.set_names import update_agent_doc_strings
 update_agent_doc_strings()
 print('Changed References to library - mira')

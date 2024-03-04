@@ -16,154 +16,216 @@ import importlib
 import pkgutil
 import re
 
-@toolset()
-class Toolset:
-    """Toolset for our context"""
-
-    @tool(autosummarize=True)
-    async def get_available_functions(self, package_name: str, agent: AgentRef):
-        """
-        Querying against the module or package should list all available submodules and functions that exist, so you can use this to discover available
-        functions and the query the function to get usage information.
-        You should ALWAYS try to run this on specific submodules, not entire libraries. For example, instead of running this on `mira` you should
-        run this function on `mira.modeling`. In fact, there should almost always be a `.` in the `package_name` argument.
-        
-        This function should be used to discover the available functions in the target library or module and get an object containing their docstrings so you can figure out how to use them.
-
-        This function will return an object and store it into self.__functions. The object will be a dictionary with the following structure:
-        {
-            function_name: <function docstring>,
-            ...
-        }
-
-        Read the docstrings to learn how to use the functions and which arguments they take.
-
-        Args:
-            package_name (str): this is the name of the package to get information about. For example "mira.modeling"   
-        """
-        functions = {}
-        module=importlib.import_module(package_name)
-        info_response = await self.get_docstrings(module)
-     
-        for var_name, info in info_response.items():
-            if var_name in functions:
-                functions[var_name] = info
-            else:
-                functions[var_name] = info
-
-        agent.functions.update(functions)
-
-        return functions   
+@tool(autosummarize=True)
+async def get_available_functions( package_name: str, agent: AgentRef):
+    """
+    Querying against the module or package should list all available submodules and functions that exist, so you can use this to discover available
+    functions and the query the function to get usage information.
+    You should ALWAYS try to run this on specific submodules, not entire libraries. For example, instead of running this on `mira` you should
+    run this function on `mira.modeling`. In fact, there should almost always be a `.` in the `package_name` argument.
     
-    async def get_docstrings(self,module):
-        result = {}
-        prefix = module.__name__ + "."
+    This function should be used to discover the available functions in the target library or module and get an object containing their docstrings so you can figure out how to use them.
 
-        for importer, modname, ispkg in pkgutil.walk_packages(module.__path__, prefix):
-            try:
-                # Load the submodule
-                submodule = importlib.import_module(modname)
-                # Process the submodule
-                for attribute_name in dir(submodule):
-                    if attribute_name.startswith('_'):
-                        continue
+    This function will return an object and store it into self.__functions. The object will be a dictionary with the following structure:
+    {
+        function_name: <function docstring>,
+        ...
+    }
 
-                    attribute = getattr(submodule, attribute_name)
-                    full_name = f"{modname}.{attribute_name}"
+    Read the docstrings to learn how to use the functions and which arguments they take.
 
-                    if hasattr(attribute, '__doc__'):
-                            if attribute.__doc__:
-                                result[full_name] = attribute.__doc__
-            except Exception as e:
-                # Skip modules that can't be imported
-                continue
+    Args:
+        package_name (str): this is the name of the package to get information about. For example "mira.modeling"   
+    """
+    functions = {}
+    module=importlib.import_module(package_name)
+    info_response = await get_docstrings(module)
+ 
+    for var_name, info in info_response.items():
+        if var_name in functions:
+            functions[var_name] = info
+        else:
+            functions[var_name] = info
 
-        return result
+    agent.functions.update(functions)
 
-    @tool(autosummarize=True)
-    async def get_functions_and_classes_docstring(self, list_of_function_or_class_names: list, agent: AgentRef):
-        """
-        Use this tool to additional information on individual function or class such as their inputs, outputs and description (and generally anything else that would be in a docstring)
-        You should ALWAYS use this tool before writing or checking code to check the function signatures of the functions or classes you are about to use.
-        
-        Read the information returned to learn how to use the function or class and which arguments they take.
-        
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
-        
-        Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
-        """
-        #TODO: figure out cause of this and remove ugly filter
-        if type(list_of_function_or_class_names)==dict:
-            list_of_function_or_class_names=list_of_function_or_class_names['list_of_function_or_class_names']
-        help_string=''
-        for func_or_class_name in list_of_function_or_class_names:
-            module_name=func_or_class_name.rsplit('.', 1)[0]
-            importlib.import_module(module_name)
+    return functions   
+
+async def get_docstrings(module):
+    result = {}
+    prefix = module.__name__ + "."
+
+    for importer, modname, ispkg in pkgutil.walk_packages(module.__path__, prefix):
+        try:
+            # Load the submodule
+            submodule = importlib.import_module(modname)
+            # Process the submodule
+            for attribute_name in dir(submodule):
+                if attribute_name.startswith('_'):
+                    continue
+
+                attribute = getattr(submodule, attribute_name)
+                full_name = f"{modname}.{attribute_name}"
+
+                if hasattr(attribute, '__doc__'):
+                        if attribute.__doc__:
+                            result[full_name] = attribute.__doc__
+        except Exception as e:
+            # Skip modules that can't be imported
+            continue
+
+    return result
+
+@tool(autosummarize=True)
+async def get_functions_and_classes_docstring( list_of_function_or_class_names: list, agent: AgentRef):
+    """
+    Use this tool to additional information on individual function or class such as their inputs, outputs and description (and generally anything else that would be in a docstring)
+    You should ALWAYS use this tool before writing or checking code to check the function signatures of the functions or classes you are about to use.
     
-            with io.StringIO() as buf, contextlib.redirect_stdout(buf):
-                help(func_or_class_name)
-                # Store the help text in the dictionary
-                help_text = buf.getvalue()
-            help_string+=f'{func_or_class_name}: {help_text}'
-            agent.functions[func_or_class_name]=help_text
-        return help_string
+    Read the information returned to learn how to use the function or class and which arguments they take.
     
-    @tool(autosummarize=True)
-    async def get_functions_and_classes_source_code(self, list_of_function_or_class_names: list, agent: AgentRef):
-        """
-        Use this tool to additional information on individual function or class such as their inputs, outputs and description (and generally anything else that would be in a docstring)
-        You should ALWAYS use this tool before writing or checking code to check the function signatures of the functions or classes you are about to use.
-        
-        Read the information returned to learn how to use the function or class and which arguments they take.
-        
-        The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
-        
-        Args:
-            list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
-        """
-        #TODO: figure out cause of this and remove ugly filter
-        if type(list_of_function_or_class_names)==dict:
-            list_of_function_or_class_names=list_of_function_or_class_names['list_of_function_or_class_names']
-        help_string=''
-        for func_or_class_name in list_of_function_or_class_names:
-            module_path, object_name = func_or_class_name.rsplit('.', 1)
-            module=importlib.import_module(module_path)
-            obj = getattr(module, object_name)
-            try:
-                source_code=inspect.getsource(obj)
-            except TypeError:
-                source_code=inspect.getsource(module)
-            #TODO: maybe use help on the object if it is an object and not a class?
-            help_string+=f'{func_or_class_name} source code: \n{source_code}'
-            agent.functions[func_or_class_name]=help_string
-        return help_string
+    The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
     
-    @tool(autosummarize=True)
-    async def search_documentation(self, query: str):
-        """
-        Use this tool to search the documentation for sections relevant to the task you are trying to perform.
-        Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
-        Response will be sections of the documentation that are relevant to your query.
-        
-        Args:
-            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
-        """
-        from src.beaker_bio_context.procedures.python3.embed_documents import query_docs
-        return query_docs(query,path="./chromadb_functions")
+    Args:
+        list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
+    """
+    #TODO: figure out cause of this and remove ugly filter
+    if type(list_of_function_or_class_names)==dict:
+        list_of_function_or_class_names=list_of_function_or_class_names['list_of_function_or_class_names']
+    help_string=''
+    for func_or_class_name in list_of_function_or_class_names:
+        module_name=func_or_class_name.rsplit('.', 1)[0]
+        importlib.import_module(module_name)
+
+        with io.StringIO() as buf, contextlib.redirect_stdout(buf):
+            help(func_or_class_name)
+            # Store the help text in the dictionary
+            help_text = buf.getvalue()
+        help_string+=f'{func_or_class_name}: {help_text}'
+        agent.functions[func_or_class_name]=help_text
+    return help_string
+
+@tool(autosummarize=True)
+async def get_functions_and_classes_source_code( list_of_function_or_class_names: list, agent: AgentRef):
+    """
+    Use this tool to additional information on individual function or class such as their inputs, outputs and description (and generally anything else that would be in a docstring)
+    You should ALWAYS use this tool before writing or checking code to check the function signatures of the functions or classes you are about to use.
     
-    @tool(autosummarize=True)
-    async def search_functions_classes(self, query: str):
-        """
-        Use this tool to search the code in the mira repo for function and classes relevant to your query.
-        Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
-        Response will be a string with the top few results, each result will have the function or class doc string and the source code (which includes the function signature)
-        
-        Args:
-            query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
-        """
-        from src.beaker_bio_context.procedures.python3.embed_functions_classes_2 import query_functions_classes
-        return query_functions_classes(query,path="./chromadb_functions") 
+    Read the information returned to learn how to use the function or class and which arguments they take.
+    
+    The function and class names used in the input to this tool should include the entire module hierarchy, ie. mira.modeling.triples.Triple
+    
+    Args:
+        list_of_function_or_class_names (list): this is a list of the the names of the functions and/or classes to get information about. For example ["mira.modeling.triples.Triple","mira.metamodel.io.model_from_json_file"]   
+    """
+    #TODO: figure out cause of this and remove ugly filter
+    if type(list_of_function_or_class_names)==dict:
+        list_of_function_or_class_names=list_of_function_or_class_names['list_of_function_or_class_names']
+    help_string=''
+    for func_or_class_name in list_of_function_or_class_names:
+        module_path, object_name = func_or_class_name.rsplit('.', 1)
+        module=importlib.import_module(module_path)
+        obj = getattr(module, object_name)
+        try:
+            source_code=inspect.getsource(obj)
+        except TypeError:
+            source_code=inspect.getsource(module)
+        #TODO: maybe use help on the object if it is an object and not a class?
+        help_string+=f'{func_or_class_name} source code: \n{source_code}'
+        agent.functions[func_or_class_name]=help_string
+    return help_string
+
+@tool(autosummarize=True)
+async def search_documentation( query: str):
+    """
+    Use this tool to search the documentation for sections relevant to the task you are trying to perform.
+    Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
+    Response will be sections of the documentation that are relevant to your query.
+    
+    Args:
+        query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
+    """
+    from src.beaker_bio_context.procedures.python3.embed_documents import query_docs
+    return query_docs(query,path="./chromadb_functions")
+
+@tool(autosummarize=True)
+async def search_functions_classes( query: str):
+    """
+    Use this tool to search the code in the mira repo for function and classes relevant to your query.
+    Input should be a natural language query meant to find information in the documentation as if you were searching on a search bar.
+    Response will be a string with the top few results, each result will have the function or class doc string and the source code (which includes the function signature)
+    
+    Args:
+        query (str): Natural language query. Some Examples - "ode model", "sir model", "using dkg package"
+    """
+    from src.beaker_bio_context.procedures.python3.embed_functions_classes_2 import query_functions_classes
+    return query_functions_classes(query,path="./chromadb_functions") 
+
+@tool()
+async def ask_user(
+     query: str, agent: AgentRef, loop: LoopControllerRef,
+) -> str:
+    """
+    Sends a query to the user and returns their response
+
+    Args:
+        query (str): A fully grammatically correct question for the user.
+
+    Returns:
+        str: The user's response to the query.
+    """
+    #asks an llm user to answer the question..
+    from setup_context.llm_utils import ask_gpt #may need to be async?
+    answer_llm_query="""You have submitted a request to the mira agent, whose purpose is to help you use the {library_name} library. 
+    {library_description}. Your request was : {request}. 
+    In order to complete your request, the agent has a question. 
+    Please answer the question in json format similar to the following: {{"answer":your_answer}}. 
+    Here is the question : {question}.
+    """
+    #TODO: this may break in conversation, might only work for first request, give whole conv history to agent?
+    res=ask_gpt(answer_llm_query.format(library_name=agent.library_name,
+                                        library_description=agent.library_description,
+                                        request=agent.most_recent_user_query,question=query),
+                model='gpt-4-0125-preview')
+    try:
+        user_answer=json.loads(res)
+        user_answer=user_answer['answer']
+    except:
+        user_answer='There was an issue with the user answering this question, please proceed with your best guess on what the user would want'
+    return user_answer
+    
+
+@tool()
+async def submit_code( code: str, agent: AgentRef, loop: LoopControllerRef) -> None:
+    """
+    Use this when you are ready to submit your code to the user. If the user asks for code, you should use this tool as your final action.
+    
+    
+    Ensure to handle any required dependencies, and provide a well-documented and efficient solution. Feel free to create helper functions or classes if needed.
+    
+    Please generate the code as if you were programming inside a Jupyter Notebook and the code is to be executed inside a cell.
+    You MUST wrap the code with a line containing three backticks before and after the generated code like the code below but replace the "triple_backticks":
+    ```
+    import numpy
+    ```
+
+    No additional text is needed in the response, just the code block with the triple backticks.
+
+    Args:
+        code (str): python code block to be submitted to the user inside triple backticks.
+    """        
+    loop.set_state(loop.STOP_SUCCESS)
+    preamble, code, coda = re.split("```\w*", code)
+    # self.tools['']
+    # result = json.dumps(
+    #     {
+    #         "action": "code_cell",
+    #         "language": "python3",
+    #         "content": code.strip(),
+    #     }
+    # )
+
+    return f'ProxyAgent.SubmitCode: {code.strip()}'
 
 
 class ProxyAgent(ReActAgent):
@@ -173,7 +235,9 @@ class ProxyAgent(ReActAgent):
     def __init__(
         self,
         config: Dict[str, Any],
-        tools: list = [Toolset],
+        tools: list = [get_available_functions,submit_code,ask_user,search_functions_classes,
+                       search_documentation,get_functions_and_classes_source_code,
+                       get_functions_and_classes_docstring],
         use_few_shot=False,
         **kwargs,
     ):
@@ -239,12 +303,12 @@ class ProxyAgent(ReActAgent):
     You should ALWAYS think about which functions and classes from {self.library_name} you are going to use before you write code. Try to use {self.library_name} as much as possible.
     You can do so in the following ways: 
     If the functions you want to use are in the context below, no need to look them up again.
-    Otherwise, first try to use the Toolset.search_functions_classes to search for relevant functions and classes.
-    If that does not provide enough information, lookup the available functions for related modules using Toolset.get_available_functions.
-    If there is a main class or function you are using, you can lookup all the information on it and all the objects and functions required to use it using Toolset.get_class_or_function_full_information.
+    Otherwise, first try to use the .search_functions_classes to search for relevant functions and classes.
+    If that does not provide enough information, lookup the available functions for related modules using get_available_functions.
+    If there is a main class or function you are using, you can lookup all the information on it and all the objects and functions required to use it using get_class_or_function_full_information.
     Use this when you want to instantiate a complicated object.
     
-    You can lookup source code for individual functions or classes using the Toolset.get_functions_and_classes_source_code before using a function from {self.library_name}.
+    You can lookup source code for individual functions or classes using the get_functions_and_classes_source_code before using a function from {self.library_name}.
     
     Below is some information on the submodules in {self.library_name}:
     
@@ -262,12 +326,12 @@ class ProxyAgent(ReActAgent):
     You should ALWAYS think about which functions and classes from {self.library_name} you are going to use before you write code. Try to use {self.library_name} as much as possible.
     You can do so in the following ways: 
     If the functions you want to use are in the context below, no need to look them up again.
-    Otherwise, first try to use the Toolset.search_functions_classes to search for relevant functions and classes.
-    If that does not provide enough information, lookup the available functions for related modules using Toolset.get_available_functions.
-    If there is a main class or function you are using, you can lookup all the information on it and all the objects and functions required to use it using Toolset.get_class_or_function_full_information.
+    Otherwise, first try to use the search_functions_classes to search for relevant functions and classes.
+    If that does not provide enough information, lookup the available functions for related modules using get_available_functions.
+    If there is a main class or function you are using, you can lookup all the information on it and all the objects and functions required to use it using get_class_or_function_full_information.
     Use this when you want to instantiate a complicated object.
     
-    You can lookup source code for individual functions or classes using the Toolset.get_functions_and_classes_source_code before using a function from {self.library_name}.
+    You can lookup source code for individual functions or classes using the get_functions_and_classes_source_code before using a function from {self.library_name}.
     
     Below is some information on the submodules in {self.library_name}:
     
@@ -289,72 +353,6 @@ Additionally if the object they ask you to update is similar to an object in the
         intro=intro_few_shot if self.use_few_shot else intro_no_few_shot
         result = "\n".join([intro,code_environment2,outro])
         return result
-    
-    @tool()
-    async def ask_user(
-        self, query: str, agent: AgentRef, loop: LoopControllerRef,
-    ) -> str:
-        """
-        Sends a query to the user and returns their response
-
-        Args:
-            query (str): A fully grammatically correct question for the user.
-
-        Returns:
-            str: The user's response to the query.
-        """
-        #asks an llm user to answer the question..
-        from setup_context.llm_utils import ask_gpt #may need to be async?
-        answer_llm_query="""You have submitted a request to the mira agent, whose purpose is to help you use the {library_name} library. 
-        {library_description}. Your request was : {request}. 
-        In order to complete your request, the agent has a question. 
-        Please answer the question in json format similar to the following: {{"answer":your_answer}}. 
-        Here is the question : {question}.
-        """
-        #TODO: this may break in conversation, might only work for first request, give whole conv history to agent?
-        res=ask_gpt(answer_llm_query.format(library_name=self.library_name,
-                                            library_description=self.library_description,
-                                            request=self.most_recent_user_query,question=query),
-                    model='gpt-4-0125-preview')
-        try:
-            user_answer=json.loads(res)
-            user_answer=user_answer['answer']
-        except:
-            user_answer='There was an issues with the user answering this question, please proceed with your best guess on what the user would want'
-        return user_answer
-        
-
-    @tool()
-    async def submit_code(self, code: str, agent: AgentRef, loop: LoopControllerRef) -> None:
-        """
-        Use this when you are ready to submit your code to the user. If the user asks for code, you should use this tool as your final action.
-        
-        
-        Ensure to handle any required dependencies, and provide a well-documented and efficient solution. Feel free to create helper functions or classes if needed.
-        
-        Please generate the code as if you were programming inside a Jupyter Notebook and the code is to be executed inside a cell.
-        You MUST wrap the code with a line containing three backticks before and after the generated code like the code below but replace the "triple_backticks":
-        ```
-        import numpy
-        ```
-
-        No additional text is needed in the response, just the code block with the triple backticks.
-
-        Args:
-            code (str): python code block to be submitted to the user inside triple backticks.
-        """        
-        loop.set_state(loop.STOP_SUCCESS)
-        preamble, code, coda = re.split("```\w*", code)
-        # self.tools['']
-        # result = json.dumps(
-        #     {
-        #         "action": "code_cell",
-        #         "language": "python3",
-        #         "content": code.strip(),
-        #     }
-        # )
-
-        return f'ProxyAgent.SubmitCode: {code.strip()}'
 
 def example_use():
     from setup_context.example_handling.beaker_agent_proxy.proxy_agent import ProxyAgent
