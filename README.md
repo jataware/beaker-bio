@@ -72,11 +72,11 @@ context.json  -
 Then add the code and the documentation under a folder with the library name under src/beaker_bio_context.
 Your new directory structure would look like - 
 
-src
-...beaker_bio_context
-......{library_name}
-.........code
-.........documentation
+src <br>
+...beaker_bio_context <br>
+......{library_name} <br>
+.........code <br>
+.........documentation <br>
 
 Now run the setup script from the top directory
 
